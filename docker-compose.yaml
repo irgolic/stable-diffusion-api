@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  redis:
+    image: redis:6.2-alpine
+    restart: always
+#    expose:
+#      - 6379
+    ports:
+      - "6379:6379"
+    command: redis-server /app/deployment/redis.conf --stop-writes-on-bgsave-error no --loglevel debug --requirepass jdfhefo1e1928h1o2389r123fdjq92edh12pd12ed2d12d
+    volumes:
+#      - redis:/data
+      - ./:/app
+  api:
+    build: .
+    image: irgolic/stable-diffusion-server
+    depends_on:
+      - redis
+#    expose:
+#      - 8000
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    links:
+      - redis
+    volumes:
+      - ./:/app
+    command: deployment/run_redis_app.sh
+  redis_worker:
+    image: irgolic/stable-diffusion-server:latest
+    depends_on:
+      - redis
+    env_file:
+      - .env
+    links:
+      - redis
+    volumes:
+      - ./:/app
+    entrypoint: deployment/run_redis_worker.sh
+  e2e_tests:
+    image: irgolic/stable-diffusion-server:latest
+    depends_on:
+      - redis
+      - api
+      - redis_worker
+    env_file:
+      - .env
+    environment:
+      API_URL: http://api:8000
+    links:
+      - redis
+      - api
+    volumes:
+      - ./:/app
+    command: deployment/run_tests.sh

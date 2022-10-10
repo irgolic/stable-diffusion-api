@@ -1,0 +1,284 @@
+components:
+  schemas:
+    AuthToken:
+      properties:
+        access_token:
+          title: Access Token
+          type: string
+        token_type:
+          title: Token Type
+          type: string
+      required:
+      - access_token
+      - token_type
+      title: AuthToken
+      type: object
+    Body_img2img_img2img_post:
+      properties:
+        image:
+          $ref: '#/components/schemas/Image'
+        parameters:
+          $ref: '#/components/schemas/Params'
+      required:
+      - parameters
+      - image
+      title: Body_img2img_img2img_post
+      type: object
+    Body_login_access_token_token_post:
+      properties:
+        client_id:
+          title: Client Id
+          type: string
+        client_secret:
+          title: Client Secret
+          type: string
+        grant_type:
+          pattern: password
+          title: Grant Type
+          type: string
+        password:
+          title: Password
+          type: string
+        scope:
+          default: ''
+          title: Scope
+          type: string
+        username:
+          title: Username
+          type: string
+      required:
+      - username
+      - password
+      title: Body_login_access_token_token_post
+      type: object
+    HTTPValidationError:
+      properties:
+        detail:
+          items:
+            $ref: '#/components/schemas/ValidationError'
+          title: Detail
+          type: array
+      title: HTTPValidationError
+      type: object
+    Image:
+      properties:
+        format:
+          title: Format
+          type: string
+        link:
+          title: Link
+          type: string
+      required:
+      - link
+      - format
+      title: Image
+      type: object
+    Model:
+      properties:
+        author:
+          title: Author
+          type: string
+        description:
+          title: Description
+          type: string
+        id:
+          title: Id
+          type: string
+        name:
+          title: Name
+          type: string
+      required:
+      - id
+      - name
+      - description
+      - author
+      title: Model
+      type: object
+    Params:
+      properties:
+        height:
+          default: 512
+          title: Height
+          type: integer
+        model_id:
+          title: Model Id
+          type: string
+        negative_prompt:
+          items:
+            $ref: '#/components/schemas/Token'
+          maxItems: 75
+          minItems: 1
+          title: Negative Prompt
+          type: array
+        prompt:
+          items:
+            $ref: '#/components/schemas/Token'
+          maxItems: 75
+          minItems: 1
+          title: Prompt
+          type: array
+        step_count:
+          default: 20
+          title: Step Count
+          type: integer
+        width:
+          default: 512
+          title: Width
+          type: integer
+      required:
+      - model_id
+      - prompt
+      title: Params
+      type: object
+    Token:
+      properties:
+        alt_text:
+          title: Alt Text
+          type: string
+        emphasis:
+          default: 0
+          title: Emphasis
+          type: integer
+        percentage_divider:
+          title: Percentage Divider
+          type: number
+        text:
+          title: Text
+          type: string
+      required:
+      - text
+      title: Token
+      type: object
+    ValidationError:
+      properties:
+        loc:
+          items:
+            anyOf:
+            - type: string
+            - type: integer
+          title: Location
+          type: array
+        msg:
+          title: Message
+          type: string
+        type:
+          title: Error Type
+          type: string
+      required:
+      - loc
+      - msg
+      - type
+      title: ValidationError
+      type: object
+  securitySchemes:
+    OAuth2PasswordBearer:
+      flows:
+        password:
+          scopes: {}
+          tokenUrl: token
+      type: oauth2
+info:
+  title: Stable Diffusion Server
+  version: 0.1.0
+openapi: 3.0.2
+paths:
+  /img2img:
+    post:
+      operationId: img2img_img2img_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Body_img2img_img2img_post'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                title: Response Img2Img Img2Img Post
+                type: string
+          description: Successful Response
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+          description: Validation Error
+      security:
+      - OAuth2PasswordBearer: []
+      summary: Img2Img
+  /models:
+    get:
+      operationId: models_models_get
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/Model'
+                title: Response Models Models Get
+                type: array
+          description: Successful Response
+      summary: Models
+  /token:
+    post:
+      operationId: login_access_token_token_post
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Body_login_access_token_token_post'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthToken'
+          description: Successful Response
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+          description: Validation Error
+      summary: Login Access Token
+  /token/all:
+    post:
+      operationId: public_access_token_token_all_post
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthToken'
+          description: Successful Response
+      summary: Public Access Token
+  /txt2img:
+    post:
+      operationId: txt2img_txt2img_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Params'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                title: Response Txt2Img Txt2Img Post
+                type: string
+          description: Successful Response
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+          description: Validation Error
+      security:
+      - OAuth2PasswordBearer: []
+      summary: Txt2Img
