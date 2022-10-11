@@ -5,6 +5,7 @@ on: [push]
 env:
   POETRY_VERSION: 1.2.0
   POETRY_URL: https://install.python-poetry.org
+  REDIS_VERSION: 7.0.5
 
 jobs:
   pyright:
@@ -90,6 +91,11 @@ jobs:
         uses: c-py/action-dotenv-to-setenv@v4
         with:
           env-file: .env
+
+      - name: Start Redis
+        run: docker run -d -p ${{ env.REDIS_PORT }}:${{ env.REDIS_PORT }} redis:${{ env.REDIS_VERSION }} redis-server 
+             --requirepass ${{ env.REDIS_PASSWORD }}
+             --port ${{ env.REDIS_PORT }}
 
       - name: Run Tests
         run: poetry run pytest
