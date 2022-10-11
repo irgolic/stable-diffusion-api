@@ -125,10 +125,12 @@ def create_app(app_config: AppConfig) -> FastAPI:
     async def construct_task_service(
         messaging_repo: MessagingRepo = Depends(construct_messaging_repo),
         event_service: EventService = Depends(construct_event_service),
+        status_service: StatusService = Depends(construct_status_service),
     ):
         return TaskService(
             messaging_repo=messaging_repo,
             event_service=event_service,
+            status_service=status_service,
         )
 
     async def construct_event_listener(
@@ -155,7 +157,7 @@ def create_app(app_config: AppConfig) -> FastAPI:
         task = Txt2ImgTask(
             task_type="txt2img",
             params=parameters,
-            session_id=user.session_id,
+            user=user,
         )
         task_service.push_task(task)
         return task.task_id
@@ -171,7 +173,7 @@ def create_app(app_config: AppConfig) -> FastAPI:
             task_type="img2img",
             params=parameters,
             image=image,
-            session_id=user.session_id,
+            user=user,
         )
         task_service.push_task(task)
         return task.task_id
@@ -185,9 +187,12 @@ def create_app(app_config: AppConfig) -> FastAPI:
     ) -> EventUnion:
         response.headers["Cache-Control"] = "no-cache, no-store"  # don't cache poll requests
 
-        event = status_service.get_latest_event(task_id)
-        if event is None or event.session_id != user.session_id:
+        task = status_service.get_task(task_id)
+        if task is None or task.user.username != user.username:
             raise HTTPException(status_code=404, detail="Task not found")
+        event = status_service.get_latest_event(task_id)
+        if event is None:
+            raise RuntimeError("Task exists but no event found")
         return event
 
     ###

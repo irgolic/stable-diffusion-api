@@ -23,7 +23,7 @@ class RunnerService:
 
         # started event
         self.event_service.send_event(
-            task.session_id,
+            task.user.session_id,
             StartedEvent(
                 event_type="started",
                 task_id=task.task_id,
@@ -40,7 +40,7 @@ class RunnerService:
 
         # finished event
         self.event_service.send_event(
-            task.session_id,
+            task.user.session_id,
             FinishedEvent(
                 event_type="finished",
                 task_id=task.task_id,

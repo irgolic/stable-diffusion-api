@@ -43,8 +43,7 @@ class BaseTestApp:
             }
 
             # finished event
-            ws_event = await ws.recv()
-            assert json.loads(json.loads(ws_event)) == {
+            expected_event = {
                 'event_type': 'finished',
                 'task_id': task_id,
                 'image': {
@@ -68,3 +67,10 @@ class BaseTestApp:
                 }
             }
 
+            ws_event = await ws.recv()
+            assert json.loads(json.loads(ws_event)) == expected_event
+
+            # poll status
+            response = self.client.get(f'/task/{task_id}')
+            assert response.status_code == 200
+            assert response.json() == expected_event
