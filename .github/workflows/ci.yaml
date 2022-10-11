@@ -5,7 +5,7 @@ on: [push]
 env:
   POETRY_VERSION: 1.2.0
   POETRY_URL: https://install.python-poetry.org
-  REDIS_VERSION: latest
+  REDIS_VERSION: 7.0.5
 
 jobs:
   pyright:
