@@ -23,6 +23,8 @@ services:
       - "8000:8000"
     env_file:
       - .env
+    environment:
+      REDIS_HOST: redis
     links:
       - redis
     volumes:
@@ -34,6 +36,8 @@ services:
       - redis
     env_file:
       - .env
+    environment:
+      REDIS_HOST: redis
     links:
       - redis
     volumes:
@@ -49,6 +53,7 @@ services:
       - .env
     environment:
       API_URL: http://api:8000
+      REDIS_HOST: redis
     links:
       - redis
       - api
