@@ -1,4 +1,5 @@
 import asyncio
+import logging
 
 import pytest
 import redis
@@ -10,11 +11,14 @@ from stable_diffusion_server.api.tests.utils import AsyncioTestClient, LocalAppC
 from stable_diffusion_server.engine.utils import load_redis
 from stable_diffusion_server.engine.workers.redis_worker import create_runner
 
+logger = logging.getLogger(__name__)
+
 try:
     r = load_redis()
     r.ping()
-except redis.exceptions.RedisError:
-    pytest.skip("Could not connect to redis instance, skipping redis api tests", allow_module_level=True)
+except redis.exceptions.RedisError as e:
+    logger.error(f"Redis is not available: {e}")
+    pytest.skip(f"Could not connect to redis instance, skipping redis api tests", allow_module_level=True)
 
 
 class TestLiveRedisApp(BaseTestApp):
