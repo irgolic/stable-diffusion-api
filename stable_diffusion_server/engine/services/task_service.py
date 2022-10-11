@@ -4,6 +4,8 @@ from typing import AsyncIterator
 import pydantic
 
 from stable_diffusion_server.engine.repos.messaging_repo import MessagingRepo
+from stable_diffusion_server.engine.services.event_service import EventService
+from stable_diffusion_server.models.events import PendingEvent
 from stable_diffusion_server.models.task import TaskUnion
 
 logger = logging.getLogger(__name__)
@@ -13,10 +15,21 @@ class TaskService:
     def __init__(
         self,
         messaging_repo: MessagingRepo,
+        event_service: EventService,
     ):
         self.messaging_repo = messaging_repo
+        self.event_service = event_service
 
     def push_task(self, task: TaskUnion) -> None:
+        # advertise task pending status
+        self.event_service.send_event(
+            task.session_id,
+            PendingEvent(
+                event_type="pending",
+                task_id=task.task_id,
+            )
+        )
+        # push task
         self.messaging_repo.push('task', task.json())
 
 

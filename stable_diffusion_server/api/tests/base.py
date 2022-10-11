@@ -27,6 +27,22 @@ class BaseTestApp:
             response = self.client.post('/txt2img', json=params)
             assert response.status_code == 200
             task_id = response.json()
+
+            # pending event
+            ws_event = await ws.recv()
+            assert json.loads(json.loads(ws_event)) == {
+                'event_type': 'pending',
+                'task_id': task_id,
+            }
+
+            # started event
+            ws_event = await ws.recv()
+            assert json.loads(json.loads(ws_event)) == {
+                'event_type': 'started',
+                'task_id': task_id,
+            }
+
+            # finished event
             ws_event = await ws.recv()
             assert json.loads(json.loads(ws_event)) == {
                 'event_type': 'finished',
