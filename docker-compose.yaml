@@ -8,7 +8,9 @@ services:
 #      - 6379
     ports:
       - "6379:6379"
-    command: redis-server /app/deployment/redis.conf --stop-writes-on-bgsave-error no --loglevel debug --requirepass jdfhefo1e1928h1o2389r123fdjq92edh12pd12ed2d12d
+    env_file:
+      - .env
+    command: redis-server /app/deployment/redis.conf --stop-writes-on-bgsave-error no --loglevel debug --requirepass $REDIS_PASSWORD
     volumes:
 #      - redis:/data
       - ./:/app
