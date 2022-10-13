@@ -30,6 +30,8 @@ services:
     command: deployment/run_redis_app.sh
   redis_worker:
     image: irgolic/stable-diffusion-server:latest
+    deploy:
+      replicas: 5
     depends_on:
       - redis
     env_file:
