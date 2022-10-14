@@ -4,9 +4,11 @@ import sys
 from typing import Coroutine
 
 from stable_diffusion_server.engine.repos.blob_repo import InMemoryBlobRepo
+from stable_diffusion_server.engine.repos.key_value_repo import InMemoryKeyValueRepo
 from stable_diffusion_server.engine.repos.messaging_repo import InMemoryMessagingRepo
 from stable_diffusion_server.engine.services.event_service import EventService
 from stable_diffusion_server.engine.services.runner_service import RunnerService
+from stable_diffusion_server.engine.services.status_service import StatusService
 from stable_diffusion_server.engine.services.task_service import TaskListener
 from stable_diffusion_server.engine.workers.utils import get_runner_coroutine
 from stable_diffusion_server.models.task import Task
@@ -23,8 +25,13 @@ def create_runner() -> Coroutine[Task, None, None]:
 
     # instantiate runner service
     blob_repo = InMemoryBlobRepo()
+    key_value_repo = InMemoryKeyValueRepo()
+    status_service = StatusService(
+        key_value_repo=key_value_repo,
+    )
     event_service = EventService(
-        messaging_repo=messaging_repo
+        messaging_repo=messaging_repo,
+        status_service=status_service,
     )
     runner_service = RunnerService(
         blob_repo=blob_repo,

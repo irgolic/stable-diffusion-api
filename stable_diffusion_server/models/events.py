@@ -13,6 +13,14 @@ class Event(pydantic.BaseModel):
     task_id: TaskId
 
 
+class PendingEvent(Event):
+    event_type: Literal['pending']
+
+
+class StartedEvent(Event):
+    event_type: Literal['started']
+
+
 class FinishedEvent(Event):
     event_type: Literal["finished"]
 

@@ -6,7 +6,7 @@ from typing_extensions import TypeAlias
 
 from stable_diffusion_server.models.image import Image
 from stable_diffusion_server.models.params import Params
-from stable_diffusion_server.models.user import SessionId
+from stable_diffusion_server.models.user import SessionId, User
 
 TaskId: TypeAlias = str
 
@@ -14,7 +14,7 @@ TaskId: TypeAlias = str
 class Task(pydantic.BaseModel):
     task_type: str
 
-    session_id: SessionId
+    user: User
     task_id: TaskId = pydantic.Field(default_factory=lambda: TaskId(uuid.uuid4()))
 
 

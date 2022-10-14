@@ -51,6 +51,40 @@ components:
       - password
       title: Body_login_access_token_token_post
       type: object
+    FinishedEvent:
+      properties:
+        event_type:
+          enum:
+          - finished
+          title: Event Type
+          type: string
+        image:
+          $ref: '#/components/schemas/GeneratedImage'
+        task_id:
+          title: Task Id
+          type: string
+      required:
+      - event_type
+      - task_id
+      - image
+      title: FinishedEvent
+      type: object
+    GeneratedImage:
+      properties:
+        format:
+          title: Format
+          type: string
+        link:
+          title: Link
+          type: string
+        parameters_used:
+          $ref: '#/components/schemas/Params'
+      required:
+      - link
+      - format
+      - parameters_used
+      title: GeneratedImage
+      type: object
     HTTPValidationError:
       properties:
         detail:
@@ -129,6 +163,36 @@ components:
       - model_id
       - prompt
       title: Params
+      type: object
+    PendingEvent:
+      properties:
+        event_type:
+          enum:
+          - pending
+          title: Event Type
+          type: string
+        task_id:
+          title: Task Id
+          type: string
+      required:
+      - event_type
+      - task_id
+      title: PendingEvent
+      type: object
+    StartedEvent:
+      properties:
+        event_type:
+          enum:
+          - started
+          title: Event Type
+          type: string
+        task_id:
+          title: Task Id
+          type: string
+      required:
+      - event_type
+      - task_id
+      title: StartedEvent
       type: object
     Token:
       properties:
@@ -222,6 +286,36 @@ paths:
                 type: array
           description: Successful Response
       summary: Models
+  /task/{task_id}:
+    get:
+      operationId: poll_task_status_task__task_id__get
+      parameters:
+      - in: path
+        name: task_id
+        required: true
+        schema:
+          title: Task Id
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                anyOf:
+                - $ref: '#/components/schemas/PendingEvent'
+                - $ref: '#/components/schemas/StartedEvent'
+                - $ref: '#/components/schemas/FinishedEvent'
+                title: Response Poll Task Status Task  Task Id  Get
+          description: Successful Response
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+          description: Validation Error
+      security:
+      - OAuth2PasswordBearer: []
+      summary: Poll Task Status
   /token:
     post:
       operationId: login_access_token_token_post
