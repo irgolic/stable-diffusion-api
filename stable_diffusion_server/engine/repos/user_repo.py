@@ -93,7 +93,7 @@ class UserRepo:
         if expire is None:
             raise AuthenticationError("Invalid token")
 
-        if datetime.datetime.fromtimestamp(expire) < datetime.datetime.utcnow():
+        if datetime.datetime.utcfromtimestamp(expire) < datetime.datetime.utcnow():
             raise AuthenticationError("Token expired")
 
         username = payload.get("sub")
