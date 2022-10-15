@@ -20,6 +20,8 @@ redis = "^4.3.4"
 aioredis = "^2.0.1"
 python-multipart = "^0.0.5"
 uvicorn = "^0.18.3"
+diffusers = "^0.5.1"
+pillow = "^9.2.0"
 
 [tool.poetry.group.dev.dependencies]
 pyright = "^1.1.274"

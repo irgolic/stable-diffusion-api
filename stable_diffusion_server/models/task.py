@@ -5,8 +5,8 @@ import pydantic
 from typing_extensions import TypeAlias
 
 from stable_diffusion_server.models.image import Image
-from stable_diffusion_server.models.params import Params
-from stable_diffusion_server.models.user import SessionId, User
+from stable_diffusion_server.models.params import Txt2ImgParams, Img2ImgParams
+from stable_diffusion_server.models.user import User
 
 TaskId: TypeAlias = str
 
@@ -21,14 +21,22 @@ class Task(pydantic.BaseModel):
 class Txt2ImgTask(Task):
     task_type: Literal["txt2img"]
 
-    params: Params
+    parameters: Txt2ImgParams
 
 
 class Img2ImgTask(Task):
     task_type: Literal["img2img"]
 
-    params: Params
-    image: Image
+    parameters: Img2ImgParams
+    input_image: Image
+
+
+# class InpaintingTask(Task):
+#     task_type: Literal["inpainting"]
+#
+#     parameters: Params
+#     input_image: Image
+#     input_mask: Image
 
 
 TaskUnion = Union[tuple(Task.__subclasses__())]  # type: ignore

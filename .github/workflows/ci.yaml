@@ -6,6 +6,7 @@ env:
   POETRY_VERSION: 1.2.0
   POETRY_URL: https://install.python-poetry.org
   REDIS_VERSION: 7.0.5
+  HUGGINGFACE_TOKEN: ${{ secrets.HUGGINGFACE_TOKEN }}
 
 jobs:
   pyright:
