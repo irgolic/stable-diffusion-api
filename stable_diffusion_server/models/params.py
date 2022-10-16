@@ -44,16 +44,17 @@ class Params(pydantic.BaseModel):
         default=1,
         description="The number of images to generate."
     )
-    seed: Optional[int] = pydantic.Field(
-        default=None,
-        description="The randomness seed to use for image generation. "
-                    "If not set, a random seed is used."
-    )
     scheduler: Literal["plms", "ddim", "k-lms"] = pydantic.Field(
         default="plms",
         description="The scheduler to use for image generation. "
                     "Currently only 'plms', 'ddim', and 'k-lms', are supported."
     )
+    # TODO implement seed
+    # seed: Optional[int] = pydantic.Field(
+    #     default=None,
+    #     description="The randomness seed to use for image generation. "
+    #                 "If not set, a random seed is used."
+    # )
 
 
 class Txt2ImgParams(Params):

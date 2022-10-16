@@ -17,7 +17,7 @@ class BaseTestApp:
         cls.client = cls.get_client()
 
     @pytest.mark.asyncio
-    async def test_dummy(self):
+    async def test_txt2img(self):
         async with self.client.websocket_connect() as ws:
             params = {
                 "prompt": "corgi wearing a top hat",
@@ -57,7 +57,6 @@ class BaseTestApp:
                         'steps': 2,
                         'guidance': 7.5,
                         'num_images': 1,
-                        'seed': None,
                         'scheduler': 'plms',
                         'width': 512,
                         'height': 512,
