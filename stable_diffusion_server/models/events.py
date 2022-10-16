@@ -21,6 +21,12 @@ class StartedEvent(Event):
     event_type: Literal['started']
 
 
+class CancelledEvent(Event):
+    event_type: Literal['cancelled']
+
+    reason: str
+
+
 class FinishedEvent(Event):
     event_type: Literal["finished"]
 

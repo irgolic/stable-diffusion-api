@@ -7,7 +7,7 @@ from stable_diffusion_server.engine.repos.messaging_repo import MessagingRepo
 from stable_diffusion_server.engine.services.event_service import EventService
 from stable_diffusion_server.engine.services.status_service import StatusService
 from stable_diffusion_server.models.events import PendingEvent
-from stable_diffusion_server.models.task import TaskUnion
+from stable_diffusion_server.models.task import Task
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +23,7 @@ class TaskService:
         self.event_service = event_service
         self.status_service = status_service
 
-    def push_task(self, task: TaskUnion) -> None:
+    def push_task(self, task: Task) -> None:
         # register task
         self.status_service.store_task(task)
         # advertise task pending status
@@ -45,10 +45,10 @@ class TaskListener:
     ):
         self.messaging_repo = messaging_repo
 
-    async def get_task(self) -> TaskUnion:
+    async def get_task(self) -> Task:
         task_json = await self.messaging_repo.pop('task_queue')
-        return pydantic.parse_raw_as(TaskUnion, task_json)
+        return Task.parse_raw(task_json)
 
-    async def listen(self) -> AsyncIterator[TaskUnion]:
+    async def listen(self) -> AsyncIterator[Task]:
         while True:
             yield await self.get_task()

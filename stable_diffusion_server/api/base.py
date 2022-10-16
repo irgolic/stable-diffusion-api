@@ -19,10 +19,10 @@ from stable_diffusion_server.engine.services.event_service import EventListener,
 from stable_diffusion_server.engine.services.status_service import StatusService
 from stable_diffusion_server.engine.services.task_service import TaskService
 from stable_diffusion_server.models.events import EventUnion
-from stable_diffusion_server.models.image import GeneratedImage, Image
+from stable_diffusion_server.models.image import GeneratedImage
 from stable_diffusion_server.models.model import Model
-from stable_diffusion_server.models.params import Params
-from stable_diffusion_server.models.task import Txt2ImgTask, TaskId, Img2ImgTask
+from stable_diffusion_server.models.params import Params, Txt2ImgParams, Img2ImgParams
+from stable_diffusion_server.models.task import TaskId, Task
 from stable_diffusion_server.models.user import UserBase, AuthenticationError, User, AuthToken
 
 
@@ -150,13 +150,12 @@ def create_app(app_config: AppConfig) -> FastAPI:
 
     @app.post("/txt2img", response_model=TaskId)
     async def txt2img(
-        parameters: Params,
+        parameters: Txt2ImgParams,
         task_service: TaskService = Depends(construct_task_service),
         user: User = Depends(get_user),
     ) -> TaskId:
-        task = Txt2ImgTask(
-            task_type="txt2img",
-            params=parameters,
+        task = Task(
+            parameters=parameters,
             user=user,
         )
         task_service.push_task(task)
@@ -164,15 +163,12 @@ def create_app(app_config: AppConfig) -> FastAPI:
 
     @app.post("/img2img", response_model=TaskId)
     async def img2img(
-        parameters: Params,
-        image: Image,
+        parameters: Img2ImgParams,
         task_service: TaskService = Depends(construct_task_service),
         user: User = Depends(get_user),
     ) -> TaskId:
-        task = Img2ImgTask(
-            task_type="img2img",
-            params=parameters,
-            image=image,
+        task = Task(
+            parameters=parameters,
             user=user,
         )
         task_service.push_task(task)

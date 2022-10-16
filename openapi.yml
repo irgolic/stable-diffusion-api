@@ -13,17 +13,6 @@ components:
       - token_type
       title: AuthToken
       type: object
-    Body_img2img_img2img_post:
-      properties:
-        image:
-          $ref: '#/components/schemas/Image'
-        parameters:
-          $ref: '#/components/schemas/Params'
-      required:
-      - parameters
-      - image
-      title: Body_img2img_img2img_post
-      type: object
     Body_login_access_token_token_post:
       properties:
         client_id:
@@ -51,6 +40,25 @@ components:
       - password
       title: Body_login_access_token_token_post
       type: object
+    CancelledEvent:
+      properties:
+        event_type:
+          enum:
+          - cancelled
+          title: Event Type
+          type: string
+        reason:
+          title: Reason
+          type: string
+        task_id:
+          title: Task Id
+          type: string
+      required:
+      - event_type
+      - task_id
+      - reason
+      title: CancelledEvent
+      type: object
     FinishedEvent:
       properties:
         event_type:
@@ -71,18 +79,21 @@ components:
       type: object
     GeneratedImage:
       properties:
-        format:
-          title: Format
+        blob_id:
+          title: Blob Id
           type: string
         link:
           title: Link
           type: string
         parameters_used:
-          $ref: '#/components/schemas/Params'
+          anyOf:
+          - $ref: '#/components/schemas/Txt2ImgParams'
+          - $ref: '#/components/schemas/Img2ImgParams'
+          title: Parameters Used
       required:
-      - link
-      - format
+      - blob_id
       - parameters_used
+      - link
       title: GeneratedImage
       type: object
     HTTPValidationError:
@@ -94,18 +105,92 @@ components:
           type: array
       title: HTTPValidationError
       type: object
-    Image:
+    Img2ImgParams:
       properties:
-        format:
-          title: Format
+        guidance:
+          default: 7.5
+          description: 'Higher guidance encourages generation closely linked to `prompt`,
+            usually at the expense of lower image quality. Try using more steps to
+            improve image quality when using high guidance. Guidance is disabled by
+            setting `guidance` to `1`. `guidance` is defined as `w` of equation 2.
+            of [ImagenPaper](https://arxiv.org/pdf/2205.11487.pdf). See also: [Classifier-Free
+            Diffusion Guidance](https://arxiv.org/abs/2207.12598).'
+          minimum: 1.0
+          title: Guidance
+          type: number
+        initial_image:
+          description: 'The image to use as input for image generation. The image
+            must have a width and height divisible by 8. '
+          title: Initial Image
           type: string
-        link:
-          title: Link
+        model_id:
+          default: CompVis/stable-diffusion-v1-4
+          description: The model to use for image generation, e.g. 'CompVis/stable-diffusion-v1-4'.
+          title: Model Id
+          type: string
+        model_repository:
+          default: huggingface
+          description: The model repository to look up `model_id` in. Currently only
+            'huggingface' is supported.
+          enum:
+          - huggingface
+          title: Model Repository
+          type: string
+        negative_prompt:
+          description: The prompt to dissuade image generation. Ignored when not using
+            guidance (i.e., if `guidance` is `1`).
+          title: Negative Prompt
+          type: string
+        prompt:
+          description: The prompt to guide image generation.
+          title: Prompt
+          type: string
+        safety_filter:
+          default: true
+          description: Ensure that you abide by the conditions of the Stable Diffusion
+            license and do not expose unfiltered results in services or applications
+            open to the public. For more information, please see https://github.com/huggingface/diffusers/pull/254
+          title: Safety Filter
+          type: boolean
+        scheduler:
+          default: plms
+          description: The scheduler to use for image generation. Currently only 'plms',
+            'ddim', and 'k-lms', are supported.
+          enum:
+          - plms
+          - ddim
+          - k-lms
+          title: Scheduler
+          type: string
+        steps:
+          default: 20
+          description: The number of denoising steps. More denoising steps usually
+            lead to a higher quality image at the expense of slower inference.
+          title: Steps
+          type: integer
+        strength:
+          default: 0.8
+          description: Conceptually, indicates how much to transform the image. The
+            image will be used as a starting point, adding more noise to it the larger
+            the `strength`. The number of denoising steps depends on the amount of
+            noise initially added. When `strength` is 1, it becomes pure noise, and
+            the denoising process will run for the full number of iterations specified
+            in `steps`. A value of 1, therefore, works like Txt2Img, essentially ignoring
+            the reference image.
+          maximum: 1.0
+          minimum: 0.0
+          title: Strength
+          type: number
+        task_type:
+          default: img2img
+          enum:
+          - img2img
+          title: Task Type
           type: string
       required:
-      - link
-      - format
-      title: Image
+      - prompt
+      - initial_image
+      title: Img2ImgParams
       type: object
     Model:
       properties:
@@ -127,42 +212,6 @@ components:
       - description
       - author
       title: Model
-      type: object
-    Params:
-      properties:
-        height:
-          default: 512
-          title: Height
-          type: integer
-        model_id:
-          title: Model Id
-          type: string
-        negative_prompt:
-          items:
-            $ref: '#/components/schemas/Token'
-          maxItems: 75
-          minItems: 1
-          title: Negative Prompt
-          type: array
-        prompt:
-          items:
-            $ref: '#/components/schemas/Token'
-          maxItems: 75
-          minItems: 1
-          title: Prompt
-          type: array
-        step_count:
-          default: 20
-          title: Step Count
-          type: integer
-        width:
-          default: 512
-          title: Width
-          type: integer
-      required:
-      - model_id
-      - prompt
-      title: Params
       type: object
     PendingEvent:
       properties:
@@ -194,24 +243,83 @@ components:
       - task_id
       title: StartedEvent
       type: object
-    Token:
+    Txt2ImgParams:
       properties:
-        alt_text:
-          title: Alt Text
-          type: string
-        emphasis:
-          default: 0
-          title: Emphasis
-          type: integer
-        percentage_divider:
-          title: Percentage Divider
+        guidance:
+          default: 7.5
+          description: 'Higher guidance encourages generation closely linked to `prompt`,
+            usually at the expense of lower image quality. Try using more steps to
+            improve image quality when using high guidance. Guidance is disabled by
+            setting `guidance` to `1`. `guidance` is defined as `w` of equation 2.
+            of [ImagenPaper](https://arxiv.org/pdf/2205.11487.pdf). See also: [Classifier-Free
+            Diffusion Guidance](https://arxiv.org/abs/2207.12598).'
+          minimum: 1.0
+          title: Guidance
           type: number
-        text:
-          title: Text
+        height:
+          default: 512
+          description: The pixel height of the generated image.
+          title: Height
+          type: integer
+        model_id:
+          default: CompVis/stable-diffusion-v1-4
+          description: The model to use for image generation, e.g. 'CompVis/stable-diffusion-v1-4'.
+          title: Model Id
           type: string
+        model_repository:
+          default: huggingface
+          description: The model repository to look up `model_id` in. Currently only
+            'huggingface' is supported.
+          enum:
+          - huggingface
+          title: Model Repository
+          type: string
+        negative_prompt:
+          description: The prompt to dissuade image generation. Ignored when not using
+            guidance (i.e., if `guidance` is `1`).
+          title: Negative Prompt
+          type: string
+        prompt:
+          description: The prompt to guide image generation.
+          title: Prompt
+          type: string
+        safety_filter:
+          default: true
+          description: Ensure that you abide by the conditions of the Stable Diffusion
+            license and do not expose unfiltered results in services or applications
+            open to the public. For more information, please see https://github.com/huggingface/diffusers/pull/254
+          title: Safety Filter
+          type: boolean
+        scheduler:
+          default: plms
+          description: The scheduler to use for image generation. Currently only 'plms',
+            'ddim', and 'k-lms', are supported.
+          enum:
+          - plms
+          - ddim
+          - k-lms
+          title: Scheduler
+          type: string
+        steps:
+          default: 20
+          description: The number of denoising steps. More denoising steps usually
+            lead to a higher quality image at the expense of slower inference.
+          title: Steps
+          type: integer
+        task_type:
+          default: txt2img
+          enum:
+          - txt2img
+          title: Task Type
+          type: string
+        width:
+          default: 512
+          description: The pixel width of the generated image.
+          title: Width
+          type: integer
       required:
-      - text
-      title: Token
+      - prompt
+      title: Txt2ImgParams
       type: object
     ValidationError:
       properties:
@@ -253,7 +361,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Body_img2img_img2img_post'
+              $ref: '#/components/schemas/Img2ImgParams'
         required: true
       responses:
         '200':
@@ -304,6 +412,7 @@ paths:
                 anyOf:
                 - $ref: '#/components/schemas/PendingEvent'
                 - $ref: '#/components/schemas/StartedEvent'
+                - $ref: '#/components/schemas/CancelledEvent'
                 - $ref: '#/components/schemas/FinishedEvent'
                 title: Response Poll Task Status Task  Task Id  Get
           description: Successful Response
@@ -357,7 +466,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Params'
+              $ref: '#/components/schemas/Txt2ImgParams'
         required: true
       responses:
         '200':

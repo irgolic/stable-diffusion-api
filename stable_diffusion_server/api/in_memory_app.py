@@ -17,7 +17,12 @@ app_config = AppConfig(
 fastapi_app = create_app(app_config)
 
 
-def app(scope, receive, send):
-    loop = asyncio.get_event_loop()
-    loop.create_task(create_runner())
-    return fastapi_app(scope, receive, send)
+_runner_task = None
+
+
+async def app(scope, receive, send):
+    global _runner_task
+    if _runner_task is None:
+        loop = asyncio.get_event_loop()
+        _runner_task = loop.create_task(create_runner())
+    await fastapi_app(scope, receive, send)

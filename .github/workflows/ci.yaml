@@ -6,6 +6,7 @@ env:
   POETRY_VERSION: 1.2.0
   POETRY_URL: https://install.python-poetry.org
   REDIS_VERSION: 7.0.5
+  HUGGINGFACE_TOKEN: ${{ secrets.HUGGINGFACE_TOKEN }}
 
 jobs:
   pyright:
@@ -107,4 +108,4 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: E2E docker-compose tests
-        run: make tests-run
+        run: make tests-up

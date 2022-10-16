@@ -42,10 +42,12 @@ services:
       - .env
     environment:
       REDIS_HOST: redis
+      HUGGINGFACE_TOKEN: $HUGGINGFACE_TOKEN
     links:
       - redis
     volumes:
       - ./:/app
+      - ~/.cache/huggingface:/root/.cache/huggingface
     entrypoint: deployment/run_redis_worker.sh
   e2e_tests:
     image: irgolic/stable-diffusion-server:latest
