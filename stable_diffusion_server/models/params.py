@@ -31,7 +31,7 @@ class Params(pydantic.BaseModel):
     )
     guidance: float = pydantic.Field(
         default=7.5,
-        min_value=1.0,
+        ge=1.0,
         description="Higher guidance encourages generation closely linked to `prompt`, "
                     "usually at the expense of lower image quality. "
                     "Try using more steps to improve image quality when using high guidance. "
@@ -68,8 +68,8 @@ class Txt2ImgParams(Params):
 class Img2ImgParams(Params):
     strength: float = pydantic.Field(
         default=0.8,
-        min_value=0.0,
-        max_value=1.0,
+        ge=0.0,
+        le=1.0,
         description="Conceptually, indicates how much to transform the image. "
                     "The image will be used as a starting point, adding more noise to it the larger the `strength`. "
                     "The number of denoising steps depends on the amount of noise initially added. "
