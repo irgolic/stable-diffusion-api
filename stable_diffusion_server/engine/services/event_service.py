@@ -38,8 +38,10 @@ class EventListener:
     ):
         self.messaging_repo = messaging_repo
 
-    async def listen(self) -> AsyncIterator[tuple[SessionId, EventUnion]]:
+    async def initialize(self) -> None:
         await self.messaging_repo.subscribe('event')
+
+    async def listen(self) -> AsyncIterator[tuple[SessionId, EventUnion]]:
         async for data in self.messaging_repo.listen():
             if data is None:
                 continue
