@@ -181,6 +181,12 @@ components:
           minimum: 0.0
           title: Strength
           type: number
+        task_type:
+          default: img2img
+          enum:
+          - img2img
+          title: Task Type
+          type: string
       required:
       - prompt
       - initial_image
@@ -300,6 +306,12 @@ components:
             lead to a higher quality image at the expense of slower inference.
           title: Steps
           type: integer
+        task_type:
+          default: txt2img
+          enum:
+          - txt2img
+          title: Task Type
+          type: string
         width:
           default: 512
           description: The pixel width of the generated image.

@@ -22,7 +22,7 @@ from stable_diffusion_server.models.events import EventUnion
 from stable_diffusion_server.models.image import GeneratedImage
 from stable_diffusion_server.models.model import Model
 from stable_diffusion_server.models.params import Params, Txt2ImgParams, Img2ImgParams
-from stable_diffusion_server.models.task import Txt2ImgTask, TaskId, Img2ImgTask
+from stable_diffusion_server.models.task import TaskId, Task
 from stable_diffusion_server.models.user import UserBase, AuthenticationError, User, AuthToken
 
 
@@ -154,8 +154,7 @@ def create_app(app_config: AppConfig) -> FastAPI:
         task_service: TaskService = Depends(construct_task_service),
         user: User = Depends(get_user),
     ) -> TaskId:
-        task = Txt2ImgTask(
-            task_type="txt2img",
+        task = Task(
             parameters=parameters,
             user=user,
         )
@@ -168,8 +167,7 @@ def create_app(app_config: AppConfig) -> FastAPI:
         task_service: TaskService = Depends(construct_task_service),
         user: User = Depends(get_user),
     ) -> TaskId:
-        task = Img2ImgTask(
-            task_type="img2img",
+        task = Task(
             parameters=parameters,
             user=user,
         )

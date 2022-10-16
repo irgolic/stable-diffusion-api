@@ -8,6 +8,8 @@ from stable_diffusion_server.models.model import ModelId
 
 
 class Params(pydantic.BaseModel):
+    task_type: str
+
     model_id: ModelId = pydantic.Field(
         default="CompVis/stable-diffusion-v1-4",
         description="The model to use for image generation, e.g. 'CompVis/stable-diffusion-v1-4'.",
@@ -61,6 +63,8 @@ class Params(pydantic.BaseModel):
 
 
 class Txt2ImgParams(Params):
+    task_type: Literal["txt2img"] = "txt2img"
+
     width: int = pydantic.Field(
         default=512,
         description="The pixel width of the generated image.")
@@ -70,6 +74,8 @@ class Txt2ImgParams(Params):
 
 
 class Img2ImgParams(Params):
+    task_type: Literal["img2img"] = "img2img"
+
     initial_image: BlobId = pydantic.Field(
         description="The image to use as input for image generation. "
                     "The image must have a width and height divisible by 8. "

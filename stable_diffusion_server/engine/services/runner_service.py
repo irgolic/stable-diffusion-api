@@ -4,13 +4,15 @@ import os
 from typing import Mapping, Any
 
 import PIL.Image
+import torch
 from diffusers import StableDiffusionPipeline, DDIMScheduler, LMSDiscreteScheduler, StableDiffusionImg2ImgPipeline
 
 from stable_diffusion_server.engine.repos.blob_repo import BlobRepo
 from stable_diffusion_server.engine.services.event_service import EventService
 from stable_diffusion_server.models.events import FinishedEvent, StartedEvent, CancelledEvent
 from stable_diffusion_server.models.image import GeneratedImage
-from stable_diffusion_server.models.task import Task, Txt2ImgTask, Img2ImgTask, TaskUnion
+from stable_diffusion_server.models.params import Txt2ImgParams, Img2ImgParams
+from stable_diffusion_server.models.task import Task
 
 logger = logging.getLogger(__name__)
 
@@ -24,7 +26,7 @@ class RunnerService:
         self.blob_repo = blob_repo
         self.event_service = event_service
 
-    async def run_task(self, task: TaskUnion) -> None:
+    async def run_task(self, task: Task) -> None:
         logger.info(f'Handle task: {task}')
 
         # started event
@@ -66,13 +68,14 @@ class RunnerService:
                 )
 
         # handle task
+        params = task.parameters
         try:
-            if isinstance(task, Txt2ImgTask):
-                img = self._handle_txt2img_task(task, pipeline_kwargs)
-            elif isinstance(task, Img2ImgTask):
-                img = self._handle_img2img_task(task, pipeline_kwargs)
+            if isinstance(params, Txt2ImgParams):
+                img = self._handle_txt2img_task(params, pipeline_kwargs)
+            elif isinstance(params, Img2ImgParams):
+                img = self._handle_img2img_task(params, pipeline_kwargs)
             else:
-                raise NotImplementedError(f'Unknown task type: {task}')
+                raise NotImplementedError(f'Unknown task type: {params.task_type}')
         except Exception as e:
             logger.error(f'Error while handling task: {task}', exc_info=True)
             self.event_service.send_event(
@@ -95,7 +98,7 @@ class RunnerService:
 
         generated_image = GeneratedImage(
             blob_id=blob_id,
-            parameters_used=task.parameters,
+            parameters_used=params,
             link=blob_url,
         )
 
@@ -109,44 +112,44 @@ class RunnerService:
             )
         )
 
-    def _handle_txt2img_task(self, task: Txt2ImgTask, pipeline_kwargs: Mapping[str, Any]) -> PIL.Image.Image:
+    def _handle_txt2img_task(self, params: Txt2ImgParams, pipeline_kwargs: Mapping[str, Any]) -> PIL.Image.Image:
         pipe = StableDiffusionPipeline.from_pretrained(
-            task.parameters.model_id,
+            params.model_id,
             **pipeline_kwargs
         )
 
         pipe = pipe.to("cpu")  # TODO: use GPU if available
 
         output = pipe(
-            prompt=task.parameters.prompt,
-            height=task.parameters.height,
-            width=task.parameters.width,
-            num_inference_steps=task.parameters.steps,
-            guidance_scale=task.parameters.guidance,
-            negative_prompt=task.parameters.negative_prompt,
+            prompt=params.prompt,
+            height=params.height,
+            width=params.width,
+            num_inference_steps=params.steps,
+            guidance_scale=params.guidance,
+            negative_prompt=params.negative_prompt,
         )
         return output.images[0]
 
-    def _handle_img2img_task(self, task: Img2ImgTask, pipeline_kwargs: Mapping[str, Any]) -> PIL.Image.Image:
+    def _handle_img2img_task(self, params: Img2ImgParams, pipeline_kwargs: Mapping[str, Any]) -> PIL.Image.Image:
         # pull image
-        blob = self.blob_repo.get_blob(task.parameters.initial_image)
+        blob = self.blob_repo.get_blob(params.initial_image)
         if blob is None:
-            raise RuntimeError(f'Blob not found: {task.parameters.initial_image}')
+            raise RuntimeError(f'Blob not found: {params.initial_image}')
         image = PIL.Image.open(io.BytesIO(blob))
 
         pipe = StableDiffusionImg2ImgPipeline.from_pretrained(
-            task.parameters.model_id,
+            params.model_id,
             **pipeline_kwargs,
         )
 
         pipe = pipe.to("cpu")  # TODO: use GPU if available
 
         output = pipe(
-            prompt=task.parameters.prompt,
+            prompt=params.prompt,
             init_image=image,
-            strength=task.parameters.strength,
-            num_inference_steps=task.parameters.steps,
-            guidance_scale=task.parameters.guidance,
-            negative_prompt=task.parameters.negative_prompt,
+            strength=params.strength,
+            num_inference_steps=params.steps,
+            guidance_scale=params.guidance,
+            negative_prompt=params.negative_prompt,
         )
         return output.images[0]
