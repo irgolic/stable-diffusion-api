@@ -8,7 +8,7 @@ from diffusers import StableDiffusionPipeline, DDIMScheduler, LMSDiscreteSchedul
 
 from stable_diffusion_server.engine.repos.blob_repo import BlobRepo
 from stable_diffusion_server.engine.services.event_service import EventService
-from stable_diffusion_server.models.events import FinishedEvent, StartedEvent
+from stable_diffusion_server.models.events import FinishedEvent, StartedEvent, CancelledEvent
 from stable_diffusion_server.models.image import GeneratedImage, Image
 from stable_diffusion_server.models.task import Task, Txt2ImgTask, Img2ImgTask, TaskUnion
 
@@ -70,7 +70,15 @@ class RunnerService:
             else:
                 raise NotImplementedError(f'Unknown task type: {task}')
         except Exception as e:
-            print(e)
+            logger.error(f'Error while handling task: {task}', exc_info=True)
+            self.event_service.send_event(
+                task.user.session_id,
+                CancelledEvent(
+                    event_type="cancelled",
+                    task_id=task.task_id,
+                    reason="Internal error: " + str(e),
+                )
+            )
             return
 
         # convert pillow image to png bytes

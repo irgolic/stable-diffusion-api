@@ -51,6 +51,25 @@ components:
       - password
       title: Body_login_access_token_token_post
       type: object
+    CancelledEvent:
+      properties:
+        event_type:
+          enum:
+          - cancelled
+          title: Event Type
+          type: string
+        reason:
+          title: Reason
+          type: string
+        task_id:
+          title: Task Id
+          type: string
+      required:
+      - event_type
+      - task_id
+      - reason
+      title: CancelledEvent
+      type: object
     FinishedEvent:
       properties:
         event_type:
@@ -389,6 +408,7 @@ paths:
                 anyOf:
                 - $ref: '#/components/schemas/PendingEvent'
                 - $ref: '#/components/schemas/StartedEvent'
+                - $ref: '#/components/schemas/CancelledEvent'
                 - $ref: '#/components/schemas/FinishedEvent'
                 title: Response Poll Task Status Task  Task Id  Get
           description: Successful Response
