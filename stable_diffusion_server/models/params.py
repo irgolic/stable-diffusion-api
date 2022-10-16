@@ -45,6 +45,12 @@ class Params(pydantic.BaseModel):
         description="The scheduler to use for image generation. "
                     "Currently only 'plms', 'ddim', and 'k-lms', are supported."
     )
+    safety_filter: bool = pydantic.Field(
+        default=True,
+        description="Ensure that you abide by the conditions of the Stable Diffusion license and "
+                    "do not expose unfiltered results in services or applications open to the public. "
+                    "For more information, please see https://github.com/huggingface/diffusers/pull/254",
+    )
     # TODO implement seed
     # seed: Optional[int] = pydantic.Field(
     #     default=None,

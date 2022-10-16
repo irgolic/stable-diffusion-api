@@ -5,7 +5,7 @@ import pydantic
 from typing_extensions import TypeAlias
 
 from stable_diffusion_server.models.image import Image
-from stable_diffusion_server.models.params import Txt2ImgParams, Img2ImgParams
+from stable_diffusion_server.models.params import Txt2ImgParams, Img2ImgParams, Params
 from stable_diffusion_server.models.user import User
 
 TaskId: TypeAlias = str
@@ -13,6 +13,7 @@ TaskId: TypeAlias = str
 
 class Task(pydantic.BaseModel):
     task_type: str
+    parameters: Params
 
     user: User
     task_id: TaskId = pydantic.Field(default_factory=lambda: TaskId(uuid.uuid4()))
@@ -20,14 +21,13 @@ class Task(pydantic.BaseModel):
 
 class Txt2ImgTask(Task):
     task_type: Literal["txt2img"]
-
     parameters: Txt2ImgParams
 
 
 class Img2ImgTask(Task):
     task_type: Literal["img2img"]
-
     parameters: Img2ImgParams
+
     input_image: Image
 
 

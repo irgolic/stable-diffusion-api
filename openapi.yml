@@ -168,6 +168,13 @@ components:
           description: The prompt to guide image generation.
           title: Prompt
           type: string
+        safety_filter:
+          default: true
+          description: Ensure that you abide by the conditions of the Stable Diffusion
+            license and do not expose unfiltered results in services or applications
+            open to the public. For more information, please see https://github.com/huggingface/diffusers/pull/254
+          title: Safety Filter
+          type: boolean
         scheduler:
           default: plms
           description: The scheduler to use for image generation. Currently only 'plms',
@@ -292,6 +299,13 @@ components:
           description: The prompt to guide image generation.
           title: Prompt
           type: string
+        safety_filter:
+          default: true
+          description: Ensure that you abide by the conditions of the Stable Diffusion
+            license and do not expose unfiltered results in services or applications
+            open to the public. For more information, please see https://github.com/huggingface/diffusers/pull/254
+          title: Safety Filter
+          type: boolean
         scheduler:
           default: plms
           description: The scheduler to use for image generation. Currently only 'plms',

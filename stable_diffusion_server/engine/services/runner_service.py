@@ -42,6 +42,10 @@ class RunnerService:
         if "HUGGINGFACE_TOKEN" in os.environ:
             pipeline_kwargs['use_auth_token'] = os.environ["HUGGINGFACE_TOKEN"]
 
+        # optionally disable safety filter
+        if not task.parameters.safety_filter:
+            pipeline_kwargs['safety_checker'] = None
+
         # pick scheduler
         match task.parameters.scheduler:
             case "plms":
