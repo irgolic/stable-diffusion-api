@@ -146,10 +146,6 @@ def create_app(app_config: AppConfig) -> FastAPI:
     # API
     ###
 
-    @app.get("/models", response_model=list[Model])
-    async def models() -> list[Model]:
-        return []
-
     @app.post("/txt2img", response_model=TaskId)
     async def txt2img(
         parameters: Txt2ImgParams,
