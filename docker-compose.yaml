@@ -42,6 +42,7 @@ services:
       - .env
     environment:
       REDIS_HOST: redis
+      HUGGINGFACE_TOKEN: $HUGGINGFACE_TOKEN
     links:
       - redis
     volumes:
