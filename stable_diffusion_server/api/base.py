@@ -136,9 +136,11 @@ def create_app(app_config: AppConfig) -> FastAPI:
     async def construct_event_listener(
         messaging_repo: MessagingRepo = Depends(construct_messaging_repo),
     ):
-        return EventListener(
+        listener = EventListener(
             messaging_repo=messaging_repo,
         )
+        await listener.initialize()
+        return listener
 
     ###
     # API
