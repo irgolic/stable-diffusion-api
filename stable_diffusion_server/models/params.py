@@ -14,9 +14,9 @@ class Params(pydantic.BaseModel):
         default="CompVis/stable-diffusion-v1-4",
         description="The model to use for image generation, e.g. 'CompVis/stable-diffusion-v1-4'.",
     )
-    model_repository: Literal["huggingface"] = pydantic.Field(
+    model_provider: Literal["huggingface"] = pydantic.Field(
         default="huggingface",
-        description="The model repository to look up `model_id` in. "
+        description="The model provider to look up `model_id`. "
                     "Currently only 'huggingface' is supported.",
     )
     prompt: str = pydantic.Field(

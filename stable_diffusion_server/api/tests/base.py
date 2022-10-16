@@ -53,7 +53,7 @@ class BaseTestApp:
                     'parameters_used': {
                         'task_type': 'txt2img',
                         'model_id': 'hf-internal-testing/tiny-stable-diffusion-pipe',
-                        'model_repository': 'huggingface',
+                        'model_provider': 'huggingface',
                         'prompt': 'corgi wearing a top hat',
                         'negative_prompt': None,
                         'steps': 2,
@@ -110,7 +110,7 @@ class BaseTestApp:
                     'parameters_used': {
                         'task_type': 'img2img',
                         'model_id': 'hf-internal-testing/tiny-stable-diffusion-pipe',
-                        'model_repository': 'huggingface',
+                        'model_provider': 'huggingface',
                         'prompt': 'corgi wearing a top hat',
                         'negative_prompt': None,
                         'steps': 2,
