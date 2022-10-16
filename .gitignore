@@ -1,3 +1,5 @@
+openapi.yml
+!openapi.yml/
 .idea
 __pycache__
 dump.rdb
