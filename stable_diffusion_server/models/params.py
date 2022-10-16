@@ -3,6 +3,7 @@ from typing import Optional, Union, Type, Literal
 import pydantic
 from pydantic import conlist, Field
 
+from stable_diffusion_server.engine.repos.blob_repo import BlobId
 from stable_diffusion_server.models.model import ModelId
 
 
@@ -69,6 +70,10 @@ class Txt2ImgParams(Params):
 
 
 class Img2ImgParams(Params):
+    initial_image: BlobId = pydantic.Field(
+        description="The image to use as input for image generation. "
+                    "The image must have a width and height divisible by 8. "
+    )
     strength: float = pydantic.Field(
         default=0.8,
         ge=0.0,

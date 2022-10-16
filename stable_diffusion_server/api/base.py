@@ -19,7 +19,7 @@ from stable_diffusion_server.engine.services.event_service import EventListener,
 from stable_diffusion_server.engine.services.status_service import StatusService
 from stable_diffusion_server.engine.services.task_service import TaskService
 from stable_diffusion_server.models.events import EventUnion
-from stable_diffusion_server.models.image import GeneratedImage, Image
+from stable_diffusion_server.models.image import GeneratedImage
 from stable_diffusion_server.models.model import Model
 from stable_diffusion_server.models.params import Params, Txt2ImgParams, Img2ImgParams
 from stable_diffusion_server.models.task import Txt2ImgTask, TaskId, Img2ImgTask
@@ -165,14 +165,12 @@ def create_app(app_config: AppConfig) -> FastAPI:
     @app.post("/img2img", response_model=TaskId)
     async def img2img(
         parameters: Img2ImgParams,
-        image: Image,  # TODO replace this blob reference with a bytes attachment for now
         task_service: TaskService = Depends(construct_task_service),
         user: User = Depends(get_user),
     ) -> TaskId:
         task = Img2ImgTask(
             task_type="img2img",
             parameters=parameters,
-            input_image=image,
             user=user,
         )
         task_service.push_task(task)

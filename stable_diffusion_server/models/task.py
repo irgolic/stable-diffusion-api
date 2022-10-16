@@ -4,7 +4,6 @@ from typing import Union, Literal
 import pydantic
 from typing_extensions import TypeAlias
 
-from stable_diffusion_server.models.image import Image
 from stable_diffusion_server.models.params import Txt2ImgParams, Img2ImgParams, Params
 from stable_diffusion_server.models.user import User
 
@@ -27,8 +26,6 @@ class Txt2ImgTask(Task):
 class Img2ImgTask(Task):
     task_type: Literal["img2img"]
     parameters: Img2ImgParams
-
-    input_image: Image
 
 
 # class InpaintingTask(Task):

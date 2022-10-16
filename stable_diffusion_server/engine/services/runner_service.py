@@ -9,7 +9,7 @@ from diffusers import StableDiffusionPipeline, DDIMScheduler, LMSDiscreteSchedul
 from stable_diffusion_server.engine.repos.blob_repo import BlobRepo
 from stable_diffusion_server.engine.services.event_service import EventService
 from stable_diffusion_server.models.events import FinishedEvent, StartedEvent, CancelledEvent
-from stable_diffusion_server.models.image import GeneratedImage, Image
+from stable_diffusion_server.models.image import GeneratedImage
 from stable_diffusion_server.models.task import Task, Txt2ImgTask, Img2ImgTask, TaskUnion
 
 logger = logging.getLogger(__name__)
@@ -95,7 +95,6 @@ class RunnerService:
 
         generated_image = GeneratedImage(
             blob_id=blob_id,
-            format="png",
             parameters_used=task.parameters,
             link=blob_url,
         )
@@ -130,7 +129,10 @@ class RunnerService:
 
     def _handle_img2img_task(self, task: Img2ImgTask, pipeline_kwargs: Mapping[str, Any]) -> PIL.Image.Image:
         # pull image
-        blob = self.blob_repo.get_blob(task.input_image.blob_id)
+        blob = self.blob_repo.get_blob(task.parameters.initial_image)
+        if blob is None:
+            raise RuntimeError(f'Blob not found: {task.parameters.initial_image}')
+        image = PIL.Image.open(io.BytesIO(blob))
 
         pipe = StableDiffusionImg2ImgPipeline.from_pretrained(
             task.parameters.model_id,
@@ -141,7 +143,7 @@ class RunnerService:
 
         output = pipe(
             prompt=task.parameters.prompt,
-            image=blob,
+            init_image=image,
             strength=task.parameters.strength,
             num_inference_steps=task.parameters.steps,
             guidance_scale=task.parameters.guidance,
