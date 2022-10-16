@@ -34,14 +34,14 @@ class BaseTestApp:
             assert ws_event == {
                 'event_type': 'pending',
                 'task_id': task_id,
-            }
+            }, ws_event
 
             # started event
             ws_event = json.loads(json.loads(await ws.recv()))
             assert ws_event == {
                 'event_type': 'started',
                 'task_id': task_id,
-            }
+            }, ws_event
 
             # finished event
             expected_event = {
@@ -67,7 +67,7 @@ class BaseTestApp:
             }
 
             ws_event = json.loads(json.loads(await ws.recv()))
-            assert ws_event == expected_event
+            assert ws_event == expected_event, ws_event
 
             # poll status
             response = self.client.get(f'/task/{task_id}')
@@ -91,14 +91,14 @@ class BaseTestApp:
             assert ws_event == {
                 'event_type': 'pending',
                 'task_id': task_id,
-            }
+            }, ws_event
 
             # started event
             ws_event = json.loads(json.loads(await ws.recv()))
             assert ws_event == {
                 'event_type': 'started',
                 'task_id': task_id,
-            }
+            }, ws_event
 
             # finished event
             expected_event = {
@@ -124,4 +124,4 @@ class BaseTestApp:
             }
 
             ws_event = json.loads(json.loads(await ws.recv()))
-            assert ws_event == expected_event
+            assert ws_event == expected_event, ws_event
