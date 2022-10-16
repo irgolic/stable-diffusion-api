@@ -94,12 +94,10 @@ class RunnerService:
         img_bytes = img_byte_arr.getvalue()
 
         blob_id = self.blob_repo.put_blob(img_bytes)
-        blob_url = self.blob_repo.get_blob_url(blob_id)
 
         generated_image = GeneratedImage(
             blob_id=blob_id,
             parameters_used=params,
-            link=blob_url,
         )
 
         # finished event

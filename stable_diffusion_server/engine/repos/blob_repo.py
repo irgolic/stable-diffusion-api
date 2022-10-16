@@ -15,9 +15,6 @@ class BlobRepo:
     def get_blob(self, blob_id: BlobId) -> Optional[bytes]:
         raise NotImplementedError
 
-    def get_blob_url(self, blob_id: BlobId) -> str:
-        raise NotImplementedError
-
 
 class InMemoryBlobRepo(BlobRepo):
     def __init__(self):
@@ -31,10 +28,6 @@ class InMemoryBlobRepo(BlobRepo):
     def get_blob(self, blob_id: BlobId) -> Optional[bytes]:
         return self._blobs.get(blob_id, None)
 
-    def get_blob_url(self, blob_id: BlobId) -> str:
-        # TODO serve from memory
-        return f'/blob/{blob_id}'
-
 
 class RedisBlobRepo(BlobRepo):
     def __init__(self):
@@ -47,7 +40,3 @@ class RedisBlobRepo(BlobRepo):
 
     def get_blob(self, blob_id: BlobId) -> Optional[bytes]:
         return self.redis.get(blob_id)
-
-    def get_blob_url(self, blob_id: BlobId) -> str:
-        # TODO serve from memory
-        return f'/blob/{blob_id}'
