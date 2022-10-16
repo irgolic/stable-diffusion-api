@@ -49,7 +49,6 @@ class BaseTestApp:
                 'task_id': task_id,
                 'image': {
                     'blob_id': mock.ANY,
-                    'link': mock.ANY,
                     'parameters_used': {
                         'task_type': 'txt2img',
                         'model_id': 'hf-internal-testing/tiny-stable-diffusion-pipe',
@@ -106,7 +105,6 @@ class BaseTestApp:
                 'task_id': task_id,
                 'image': {
                     'blob_id': mock.ANY,
-                    'link': mock.ANY,
                     'parameters_used': {
                         'task_type': 'img2img',
                         'model_id': 'hf-internal-testing/tiny-stable-diffusion-pipe',

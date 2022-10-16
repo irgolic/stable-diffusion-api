@@ -1,6 +1,6 @@
 import pydantic
 
-from stable_diffusion_server.engine.repos.blob_repo import BlobId
+from stable_diffusion_server.models.blob import BlobId
 from stable_diffusion_server.models.params import ParamsUnion
 
 

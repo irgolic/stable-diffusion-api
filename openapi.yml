@@ -40,6 +40,16 @@ components:
       - password
       title: Body_login_access_token_token_post
       type: object
+    Body_post_blob_blob_post:
+      properties:
+        blob_data:
+          format: binary
+          title: Blob Data
+          type: string
+      required:
+      - blob_data
+      title: Body_post_blob_blob_post
+      type: object
     CancelledEvent:
       properties:
         event_type:
@@ -82,9 +92,6 @@ components:
         blob_id:
           title: Blob Id
           type: string
-        link:
-          title: Link
-          type: string
         parameters_used:
           anyOf:
           - $ref: '#/components/schemas/Txt2ImgParams'
@@ -93,7 +100,6 @@ components:
       required:
       - blob_id
       - parameters_used
-      - link
       title: GeneratedImage
       type: object
     HTTPValidationError:
@@ -191,27 +197,6 @@ components:
       - prompt
       - initial_image
       title: Img2ImgParams
-      type: object
-    Model:
-      properties:
-        author:
-          title: Author
-          type: string
-        description:
-          title: Description
-          type: string
-        id:
-          title: Id
-          type: string
-        name:
-          title: Name
-          type: string
-      required:
-      - id
-      - name
-      - description
-      - author
-      title: Model
       type: object
     PendingEvent:
       properties:
@@ -354,6 +339,60 @@ info:
   version: 0.1.0
 openapi: 3.0.2
 paths:
+  /blob:
+    post:
+      operationId: post_blob_blob_post
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Body_post_blob_blob_post'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                title: Response Post Blob Blob Post
+                type: string
+          description: Successful Response
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+          description: Validation Error
+      security:
+      - OAuth2PasswordBearer: []
+      summary: Post Blob
+  /blob/{blob_id}:
+    get:
+      operationId: get_blob_blob__blob_id__get
+      parameters:
+      - in: path
+        name: blob_id
+        required: true
+        schema:
+          title: Blob Id
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                format: binary
+                title: Response Get Blob Blob  Blob Id  Get
+                type: string
+          description: Successful Response
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+          description: Validation Error
+      security:
+      - OAuth2PasswordBearer: []
+      summary: Get Blob
   /img2img:
     post:
       operationId: img2img_img2img_post
@@ -380,20 +419,6 @@ paths:
       security:
       - OAuth2PasswordBearer: []
       summary: Img2Img
-  /models:
-    get:
-      operationId: models_models_get
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                items:
-                  $ref: '#/components/schemas/Model'
-                title: Response Models Models Get
-                type: array
-          description: Successful Response
-      summary: Models
   /task/{task_id}:
     get:
       operationId: poll_task_status_task__task_id__get
