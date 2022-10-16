@@ -145,11 +145,6 @@ components:
             guidance (i.e., if `guidance` is `1`).
           title: Negative Prompt
           type: string
-        num_images:
-          default: 1
-          description: The number of images to generate.
-          title: Num Images
-          type: integer
         prompt:
           description: The prompt to guide image generation.
           title: Prompt
@@ -274,11 +269,6 @@ components:
             guidance (i.e., if `guidance` is `1`).
           title: Negative Prompt
           type: string
-        num_images:
-          default: 1
-          description: The number of images to generate.
-          title: Num Images
-          type: integer
         prompt:
           description: The prompt to guide image generation.
           title: Prompt

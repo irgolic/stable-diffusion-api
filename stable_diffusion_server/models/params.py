@@ -40,10 +40,6 @@ class Params(pydantic.BaseModel):
                     "[ImagenPaper](https://arxiv.org/pdf/2205.11487.pdf). "
                     "See also: [Classifier-Free Diffusion Guidance](https://arxiv.org/abs/2207.12598)."
     )
-    num_images: int = pydantic.Field(
-        default=1,
-        description="The number of images to generate."
-    )
     scheduler: Literal["plms", "ddim", "k-lms"] = pydantic.Field(
         default="plms",
         description="The scheduler to use for image generation. "

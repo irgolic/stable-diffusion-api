@@ -113,7 +113,6 @@ class RunnerService:
             num_inference_steps=task.parameters.steps,
             guidance_scale=task.parameters.guidance,
             negative_prompt=task.parameters.negative_prompt,
-            num_images_per_prompt=task.parameters.num_images,
         )
         return output.images[0]
 
@@ -135,6 +134,5 @@ class RunnerService:
             num_inference_steps=task.parameters.steps,
             guidance_scale=task.parameters.guidance,
             negative_prompt=task.parameters.negative_prompt,
-            num_images_per_prompt=task.parameters.num_images,
         )
         return output.images[0]
