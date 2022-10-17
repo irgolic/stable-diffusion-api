@@ -12,6 +12,15 @@ https://editor.swagger.io/?url=https://raw.githubusercontent.com/irgolic/stable-
 
 ### Environment Variables
 
+See `.env.example` for a list of example environment variable values.
+
+- SECRET_KEY: The secret key used to sign the JWT tokens.
+- ENABLE_PUBLIC_TOKEN: Whether to enable public token generation (anything except empty string enables it).
+- ENABLE_SIGNUP: Whether to enable user signup (anything except empty string enables it).
+- REDIS_PORT: The port of the Redis server.
+- REDIS_HOST: The host of the Redis server.
+- REDIS_PASSWORD: The password of the Redis server.
+- HUGGINGFACE_TOKEN: The token used by the worker to access the Hugging Face API.
 
 
 ### Authentication
