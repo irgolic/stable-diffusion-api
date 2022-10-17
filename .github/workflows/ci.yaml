@@ -6,6 +6,10 @@ env:
   POETRY_VERSION: 1.2.0
   POETRY_URL: https://install.python-poetry.org
   REDIS_VERSION: 7.0.5
+  REDIS_PORT: 6379
+  REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
+  SECRET_KEY: ${{ secrets.SECRET_KEY }}
+  ENABLE_PUBLIC_TOKEN: 1
   HUGGINGFACE_TOKEN: ${{ secrets.HUGGINGFACE_TOKEN }}
 
 jobs:
@@ -87,11 +91,6 @@ jobs:
 
       - name: Install Dependencies
         run: poetry install --with test
-
-      - name: Load DotEnv
-        uses: c-py/action-dotenv-to-setenv@v4
-        with:
-          env-file: .env
 
       - name: Start Redis
         run: docker run -d -p ${{ env.REDIS_PORT }}:${{ env.REDIS_PORT }} redis:${{ env.REDIS_VERSION }} redis-server 
