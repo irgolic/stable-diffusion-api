@@ -6,22 +6,21 @@ import pydantic
 import yaml
 from fastapi.openapi.utils import get_openapi
 
-from fastapi import FastAPI, Depends, websockets, Query, HTTPException
+from fastapi import FastAPI, Depends, websockets, Query, HTTPException, File, UploadFile
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from starlette import status
 from starlette.responses import Response
 
-from stable_diffusion_server.engine.repos.blob_repo import BlobRepo
+from stable_diffusion_server.engine.repos.blob_repo import BlobRepo, BlobId
 from stable_diffusion_server.engine.repos.key_value_repo import KeyValueRepo
 from stable_diffusion_server.engine.repos.messaging_repo import MessagingRepo
 from stable_diffusion_server.engine.repos.user_repo import UserRepo
 from stable_diffusion_server.engine.services.event_service import EventListener, EventService
 from stable_diffusion_server.engine.services.status_service import StatusService
 from stable_diffusion_server.engine.services.task_service import TaskService
+from stable_diffusion_server.models.blob import Blob
 from stable_diffusion_server.models.events import EventUnion
-from stable_diffusion_server.models.image import GeneratedImage
-from stable_diffusion_server.models.model import Model
-from stable_diffusion_server.models.params import Params, Txt2ImgParams, Img2ImgParams
+from stable_diffusion_server.models.params import Txt2ImgParams, Img2ImgParams
 from stable_diffusion_server.models.task import TaskId, Task
 from stable_diffusion_server.models.user import UserBase, AuthenticationError, User, AuthToken
 
@@ -142,13 +141,12 @@ def create_app(app_config: AppConfig) -> FastAPI:
         await listener.initialize()
         return listener
 
+    async def construct_blob_repo() -> BlobRepo:
+        return app_config.blob_repo_class()
+
     ###
     # API
     ###
-
-    @app.get("/models", response_model=list[Model])
-    async def models() -> list[Model]:
-        return []
 
     @app.post("/txt2img", response_model=TaskId)
     async def txt2img(
@@ -192,6 +190,42 @@ def create_app(app_config: AppConfig) -> FastAPI:
         if event is None:
             raise RuntimeError("Task exists but no event found")
         return event
+
+    @app.get(
+        "/blob/{blob_id}",
+        responses={
+            200: {
+                "content": {"image/png": {}}
+            },
+            404: {
+                "description": "Blob not found",
+            }
+        },
+        # FIXME this throws an error, and I don't know why ;-;
+        #  the only side effect is an erroneous "content-type: application/json" in the OpenAPI spec
+        # response_model=Response
+    )
+    async def get_blob(
+        blob_id: BlobId,
+        blob_repo: BlobRepo = Depends(construct_blob_repo),
+        user: User = Depends(get_user),
+    ) -> Response:
+        blob = blob_repo.get_blob(blob_id, user.username)
+        if blob is None:
+            raise HTTPException(status_code=404, detail="Blob not found")
+        return Response(content=blob.data, media_type="image/png")
+
+    @app.post("/blob", response_model=BlobId)
+    async def post_blob(
+        blob_data: UploadFile = File(),
+        blob_repo: BlobRepo = Depends(construct_blob_repo),
+        user: User = Depends(get_user),
+    ) -> BlobId:
+        blob = Blob(
+            data=blob_data.file.read(),
+            username=user.username,
+        )
+        return blob_repo.put_blob(blob)
 
     ###
     # Websocket

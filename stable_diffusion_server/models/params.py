@@ -3,7 +3,7 @@ from typing import Optional, Union, Type, Literal
 import pydantic
 from pydantic import conlist, Field
 
-from stable_diffusion_server.engine.repos.blob_repo import BlobId
+from stable_diffusion_server.models.blob import BlobId
 from stable_diffusion_server.models.model import ModelId
 
 

@@ -3,3 +3,6 @@ tests-up:
 
 tests-run:
 	docker-compose run e2e_tests
+
+run:
+	docker-compose up --abort-on-container-exit --force-recreate --build api redis_worker

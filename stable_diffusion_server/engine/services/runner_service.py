@@ -9,10 +9,12 @@ from diffusers import StableDiffusionPipeline, DDIMScheduler, LMSDiscreteSchedul
 
 from stable_diffusion_server.engine.repos.blob_repo import BlobRepo
 from stable_diffusion_server.engine.services.event_service import EventService
+from stable_diffusion_server.models.blob import Blob
 from stable_diffusion_server.models.events import FinishedEvent, StartedEvent, CancelledEvent
 from stable_diffusion_server.models.image import GeneratedImage
 from stable_diffusion_server.models.params import Txt2ImgParams, Img2ImgParams
 from stable_diffusion_server.models.task import Task
+from stable_diffusion_server.models.user import User
 
 logger = logging.getLogger(__name__)
 
@@ -73,7 +75,7 @@ class RunnerService:
             if isinstance(params, Txt2ImgParams):
                 img = self._handle_txt2img_task(params, pipeline_kwargs)
             elif isinstance(params, Img2ImgParams):
-                img = self._handle_img2img_task(params, pipeline_kwargs)
+                img = self._handle_img2img_task(params, pipeline_kwargs, task.user)
             else:
                 raise NotImplementedError(f'Unknown task type: {params.task_type}')
         except Exception as e:
@@ -93,13 +95,15 @@ class RunnerService:
         img.save(img_byte_arr, format='PNG')
         img_bytes = img_byte_arr.getvalue()
 
-        blob_id = self.blob_repo.put_blob(img_bytes)
-        blob_url = self.blob_repo.get_blob_url(blob_id)
+        blob = Blob(
+            data=img_bytes,
+            username=task.user.username,
+        )
+        blob_id = self.blob_repo.put_blob(blob)
 
         generated_image = GeneratedImage(
             blob_id=blob_id,
             parameters_used=params,
-            link=blob_url,
         )
 
         # finished event
@@ -130,12 +134,15 @@ class RunnerService:
         )
         return output.images[0]
 
-    def _handle_img2img_task(self, params: Img2ImgParams, pipeline_kwargs: Mapping[str, Any]) -> PIL.Image.Image:
+    def _handle_img2img_task(self,
+                             params: Img2ImgParams,
+                             pipeline_kwargs: Mapping[str, Any],
+                             user: User) -> PIL.Image.Image:
         # pull image
-        blob = self.blob_repo.get_blob(params.initial_image)
+        blob = self.blob_repo.get_blob(params.initial_image, user.username)
         if blob is None:
             raise RuntimeError(f'Blob not found: {params.initial_image}')
-        image = PIL.Image.open(io.BytesIO(blob))
+        image = PIL.Image.open(io.BytesIO(blob.data))
 
         pipe = StableDiffusionImg2ImgPipeline.from_pretrained(
             params.model_id,
