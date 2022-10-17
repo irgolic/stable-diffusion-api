@@ -2,26 +2,13 @@
 
 [![OpenApi](https://img.shields.io/badge/OpenApi-3.0.2-black)](https://editor.swagger.io/?url=https://raw.githubusercontent.com/irgolic/stable-diffusion-server/master/openapi.yml)
 
-Easily serve Txt2Img and Img2Img with any model published on [Hugging Face](https://huggingface.co/models).
-The aim of this project is to provide a lightweight backend for 
+Simple backend to serve Txt2Img and Img2Img with any model published on [Hugging Face](https://huggingface.co/models).
+The aim is to provide a lightweight, easily extensible backend for image generation.
 
 ## Usage
 
 Generate any client library from the [OpenApi](
 https://editor.swagger.io/?url=https://raw.githubusercontent.com/irgolic/stable-diffusion-server/master/openapi.yml) specification.
-
-### Environment Variables
-
-See `.env.example` for a list of example environment variable values.
-
-- SECRET_KEY: The secret key used to sign the JWT tokens.
-- ENABLE_PUBLIC_TOKEN: Whether to enable public token generation (anything except empty string enables it).
-- ENABLE_SIGNUP: Whether to enable user signup (anything except empty string enables it).
-- REDIS_PORT: The port of the Redis server.
-- REDIS_HOST: The host of the Redis server.
-- REDIS_PASSWORD: The password of the Redis server.
-- HUGGINGFACE_TOKEN: The token used by the worker to access the Hugging Face API.
-
 
 ### Authentication
 
@@ -82,6 +69,8 @@ A FinishedEvent contains an `image` field including its `blob_id` and `parameter
 
 ## Roadmap
 
+Help wanted.
+
 - [ ] GPU support (currently runs only on CPU) – testers needed!
 - [ ] Inpainting
 - [ ] Seed parameter
@@ -116,6 +105,19 @@ poetry install
 ```
 
 ## Running
+
+### Environment Variables
+
+See `.env.example` for a list of example environment variable values.
+Copy `.env.example` to `.env` and edit as needed (make sure to regenerate the secrets).
+
+- `SECRET_KEY`: The secret key used to sign the JWT tokens.
+- `ENABLE_PUBLIC_TOKEN`: Whether to enable public token generation (anything except empty string enables it).
+- `ENABLE_SIGNUP`: Whether to enable user signup (anything except empty string enables it).
+- `REDIS_PORT`: The port of the Redis server.
+- `REDIS_HOST`: The host of the Redis server.
+- `REDIS_PASSWORD`: The password of the Redis server.
+- `HUGGINGFACE_TOKEN`: The token used by the worker to access the Hugging Face API.
 
 ### Docker Compose
 
