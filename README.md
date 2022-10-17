@@ -1,16 +1,15 @@
 # Stable Diffusion Server
 
-[![OpenApi](https://img.shields.io/badge/OpenApi-3.0.2-black)](https://editor.swagger.io/?url=https://raw.githubusercontent.com/irgolic/stable-diffusion-server/master/openapi.yml?token%3DGHSAT0AAAAAABTFSDOFSU2W23KZ4XG72RYGY2MXGZA)
+[![OpenApi](https://img.shields.io/badge/OpenApi-3.0.2-black)](https://editor.swagger.io/?url=https://raw.githubusercontent.com/irgolic/stable-diffusion-server/master/openapi.yml)
 
-A lightweight server for deploying stable diffusion models. Easily run Txt2Img and Img2Img with any model published on [Hugging Face](https://huggingface.co/models).
+Easily run Txt2Img and Img2Img with any model published on [Hugging Face](https://huggingface.co/models).
 
 ## Usage
 
 Generate any client library from the [OpenApi](
 https://editor.swagger.io/?url=https://raw.githubusercontent.com/irgolic/stable-diffusion-server/master/openapi.yml?token%3DGHSAT0AAAAAABTFSDOFSU2W23KZ4XG72RYGY2MXGZA) specification.
 
-**TODO**  
-_add example with either bash, python, or javascript._
+[//]: # (FIXME add examples with either bash, python, or javascript)
 
 ### Authentication
 
@@ -25,24 +24,22 @@ Alternatively, set environment variable `ENABLE_SIGNUP` to allow users to sign u
 The model will be downloaded and cached, and the task will be queued for execution.
 
 Supported parameters:
-- `prompt`: text prompt, e.g. `A cat` **required**
-- `negative_prompt`: negative prompt, e.g. `A dog`
-- `model_id`: model name, e.g. `CompVis/stable-diffusion-v1-4`
-- `model_provider`: model provider, e.g. `huggingface`
-- `width`: image width, e.g. `512`
-- `height`: image height, e.g. `512`
-- `steps`: number of steps, e.g. `20`
-- `guidance`: relatedness to `prompt`, e.g. `7.5`
-- `scheduler`: image generation schedule r, e.g. `linear`
-- `safety_filter`: enable safety checker, e.g. `true`
+- `prompt`: text prompt **(required)**, e.g. `corgi with a top hat`
+- `negative_prompt`: negative prompt, e.g. `monocle`
+- `model_id`: model name, default `CompVis/stable-diffusion-v1-4`
+- `model_provider`: model provider, currently only `huggingface` is supported
+- `steps`: number of steps, default `20`
+- `guidance`: relatedness to `prompt`, default `7.5`
+- `scheduler`: either `plms`, `ddim`, or `k-lms`
+- `safety_filter`: enable safety checker, default `true`
 
 POST `/txt2img` also supports:
-- `width`: image width, e.g. `512`
-- `height`: image height, e.g. `512`
+- `width`: image width, default `512`
+- `height`: image height, default `512`
 
 POST `/img2img` also supports:
-- `initial_image`: image file **required**
-- `strength`: how much to change the image, e.g. `0.8`
+- `initial_image`: image file **(required)**
+- `strength`: how much to change the image, default `0.8`
 
 Img2Img can reference a previously generated image's `blob_id`. 
 Alternatively, POST `/blob` to upload a blob, and get a new `blob_id`. 
@@ -69,6 +66,8 @@ A FinishedEvent contains an `image` field including its `blob_id` and `parameter
 
 - [ ] GPU support (currently runs only on CPU) – testers needed!
 - [ ] Seed parameter
+- [ ] Custom tokenizers, supporting `((emphasis))` and `[alternating,prompts,0.4]`
+- [ ] More model providers
 
 ## Installation
 
