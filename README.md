@@ -1,6 +1,6 @@
 # Stable Diffusion Server
 
-[![OpenApi](https://img.shields.io/badge/OpenApi-3.0.3-blue)](https://editor.swagger.io/?url=https://raw.githubusercontent.com/irgolic/stable-diffusion-server/master/openapi.yml?token%3DGHSAT0AAAAAABTFSDOFSU2W23KZ4XG72RYGY2MXGZA)
+[![OpenApi](https://img.shields.io/badge/OpenApi-3.0.2-black)](https://editor.swagger.io/?url=https://raw.githubusercontent.com/irgolic/stable-diffusion-server/master/openapi.yml?token%3DGHSAT0AAAAAABTFSDOFSU2W23KZ4XG72RYGY2MXGZA)
 
 A lightweight server for deploying stable diffusion models. Easily run Txt2Img and Img2Img with any model published on [Hugging Face](https://huggingface.co/models).
 
