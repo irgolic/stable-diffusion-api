@@ -1,6 +1,7 @@
 # Stable Diffusion Server
 
-[![OpenApi](https://img.shields.io/badge/OpenApi-3.0.2-black)](https://editor.swagger.io/?url=https://raw.githubusercontent.com/irgolic/stable-diffusion-server/master/openapi.yml)
+[![OpenApi](https://img.shields.io/badge/OpenApi-3.0.2-orange)](https://editor.swagger.io/?url=https://raw.githubusercontent.com/irgolic/stable-diffusion-server/master/openapi.yml)
+[![Google Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/irgolic/stable-diffusion-server/blob/master/colab_runner.ipynb)
 
 Simple backend to serve Txt2Img and Img2Img with any model published on [Hugging Face](https://huggingface.co/models).
 The aim is to provide a lightweight, easily extensible backend for image generation.
