@@ -79,21 +79,23 @@ def create_app(app_config: AppConfig) -> FastAPI:
         except AuthenticationError:
             raise credentials_exception
 
-    if app_config.ENABLE_PUBLIC_TOKEN:
-        @app.post("/token/all", response_model=AuthToken)
-        async def public_access_token(user_repo: UserRepo = Depends(construct_user_repo)) -> AuthToken:
-            return user_repo.create_public_token()
+    @app.post("/token/all", response_model=AuthToken)
+    async def public_access_token(user_repo: UserRepo = Depends(construct_user_repo)) -> AuthToken:
+        if not app_config.ENABLE_PUBLIC_TOKEN:
+            raise HTTPException(status_code=403, detail="Public token is disabled")
+        return user_repo.create_public_token()
 
-    if app_config.ENABLE_SIGNUP:
-        @app.post("/user/{username}", response_model=UserBase)
-        async def signup(username: str,
-                         password: str,
-                         user_repo: UserRepo = Depends(construct_user_repo)) -> UserBase:
-            user = UserBase(
-                username=username,
-            )
-            user_repo.create_user(user, password)
-            return user
+    @app.post("/user/{username}", response_model=UserBase)
+    async def signup(username: str,
+                     password: str,
+                     user_repo: UserRepo = Depends(construct_user_repo)) -> UserBase:
+        if not app_config.ENABLE_SIGNUP:
+            raise HTTPException(status_code=403, detail="Signup is disabled")
+        user = UserBase(
+            username=username,
+        )
+        user_repo.create_user(user, password)
+        return user
 
     ###
     # Engine
