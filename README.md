@@ -71,13 +71,15 @@ A FinishedEvent contains an `image` field including its `blob_id` and `parameter
 
 Help wanted.
 
-- [ ] GPU support (currently runs only on CPU) – testers needed!
+- [x] CUDA and CPU support
 - [ ] Inpainting
 - [ ] Seed parameter
 - [ ] Cancel task endpoint
+- [ ] Speed up image generation
 - [ ] Progress update events (model download, image generation)
 - [ ] Custom tokenizers, supporting `((emphasis))` and `[alternating,prompts,0.4]`
 - [ ] More model providers
+- [ ] Other GPU support – testers needed!
 
 ## Installation
 

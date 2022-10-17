@@ -122,7 +122,10 @@ class RunnerService:
             **pipeline_kwargs
         )
 
-        pipe = pipe.to("cpu")  # TODO: use GPU if available
+        if torch.cuda.is_available():
+            pipe = pipe.to("cuda")
+        else:
+            pipe = pipe.to("cpu")
 
         output = pipe(
             prompt=params.prompt,
@@ -149,7 +152,10 @@ class RunnerService:
             **pipeline_kwargs,
         )
 
-        pipe = pipe.to("cpu")  # TODO: use GPU if available
+        if torch.cuda.is_available():
+            pipe = pipe.to("cuda")
+        else:
+            pipe = pipe.to("cpu")
 
         output = pipe(
             prompt=params.prompt,
