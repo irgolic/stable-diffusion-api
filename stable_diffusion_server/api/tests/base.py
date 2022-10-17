@@ -1,3 +1,4 @@
+import io
 import json
 import typing
 from unittest import mock
@@ -75,11 +76,24 @@ class BaseTestApp:
 
             generated_image_blob_id = ws_event['image']['blob_id']
 
+            # download the blob
+            response = self.client.get(f'/blob/{generated_image_blob_id}')
+            assert response.status_code == 200
+
+            # upload the blob
+            img_bytes = response.content
+            response = self.client.post('/blob', files={
+                "blob_data": ("filename", io.BytesIO(img_bytes), "image/png"),
+            })
+            assert response.status_code == 200
+            uploaded_blob_id = response.json()
+            # uploaded_blob_id = generated_image_blob_id
+
             # run the generated image through img2img
             response = self.client.post(
                 '/img2img',
                 json={
-                    "initial_image": generated_image_blob_id,
+                    "initial_image": uploaded_blob_id,
                 } | params
             )
             assert response.status_code == 200
@@ -114,7 +128,7 @@ class BaseTestApp:
                         'steps': 2,
                         'guidance': 7.5,
                         'scheduler': 'plms',
-                        'initial_image': generated_image_blob_id,
+                        'initial_image': uploaded_blob_id,
                         "safety_filter": False,
                         "strength": 0.8,
                     },
@@ -123,3 +137,14 @@ class BaseTestApp:
 
             ws_event = json.loads(json.loads(await ws.recv()))
             assert ws_event == expected_event, ws_event
+
+            # poll status
+            response = self.client.get(f'/task/{task_id}')
+            assert response.status_code == 200
+            assert response.json() == expected_event
+
+            generated_image_blob_id = ws_event['image']['blob_id']
+
+            # download the blob (and do nothing with it)
+            response = self.client.get(f'/blob/{generated_image_blob_id}')
+            assert response.status_code == 200

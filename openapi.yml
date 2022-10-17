@@ -379,11 +379,11 @@ paths:
         '200':
           content:
             application/json:
-              schema:
-                format: binary
-                title: Response Get Blob Blob  Blob Id  Get
-                type: string
+              schema: {}
+            image/png: {}
           description: Successful Response
+        '404':
+          description: Blob not found
         '422':
           content:
             application/json:

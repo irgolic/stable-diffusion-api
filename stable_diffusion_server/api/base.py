@@ -6,7 +6,7 @@ import pydantic
 import yaml
 from fastapi.openapi.utils import get_openapi
 
-from fastapi import FastAPI, Depends, websockets, Query, HTTPException, File
+from fastapi import FastAPI, Depends, websockets, Query, HTTPException, File, UploadFile
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from starlette import status
 from starlette.responses import Response
@@ -191,25 +191,38 @@ def create_app(app_config: AppConfig) -> FastAPI:
             raise RuntimeError("Task exists but no event found")
         return event
 
-    @app.get("/blob/{blob_id}", response_model=bytes)
+    @app.get(
+        "/blob/{blob_id}",
+        responses={
+            200: {
+                "content": {"image/png": {}}
+            },
+            404: {
+                "description": "Blob not found",
+            }
+        },
+        # FIXME this throws an error, and I don't know why ;-;
+        #  the only side effect is an erroneous "content-type: application/json" in the OpenAPI spec
+        # response_model=Response
+    )
     async def get_blob(
         blob_id: BlobId,
         blob_repo: BlobRepo = Depends(construct_blob_repo),
         user: User = Depends(get_user),
-    ) -> bytes:
+    ) -> Response:
         blob = blob_repo.get_blob(blob_id, user.username)
         if blob is None:
             raise HTTPException(status_code=404, detail="Blob not found")
-        return blob.data
+        return Response(content=blob.data, media_type="image/png")
 
     @app.post("/blob", response_model=BlobId)
     async def post_blob(
-        blob_data: bytes = File(...),
+        blob_data: UploadFile = File(),
         blob_repo: BlobRepo = Depends(construct_blob_repo),
         user: User = Depends(get_user),
     ) -> BlobId:
         blob = Blob(
-            data=blob_data,
+            data=blob_data.file.read(),
             username=user.username,
         )
         return blob_repo.put_blob(blob)
