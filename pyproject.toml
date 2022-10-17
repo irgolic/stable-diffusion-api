@@ -25,6 +25,7 @@ pillow = "^9.2.0"
 torch = "^1.12.1"
 transformers = "^4.23.1"
 scipy = "^1.9.2"
+bcrypt = "^4.0.1"
 
 [tool.poetry.group.dev.dependencies]
 pyright = "^1.1.274"
