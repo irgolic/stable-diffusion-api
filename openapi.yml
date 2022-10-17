@@ -306,6 +306,15 @@ components:
       - prompt
       title: Txt2ImgParams
       type: object
+    UserBase:
+      properties:
+        username:
+          title: Username
+          type: string
+      required:
+      - username
+      title: UserBase
+      type: object
     ValidationError:
       properties:
         loc:
@@ -393,21 +402,24 @@ paths:
       security:
       - OAuth2PasswordBearer: []
       summary: Get Blob
-  /img2img:
+  /task:
     post:
-      operationId: img2img_img2img_post
+      operationId: create_task_task_post
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Img2ImgParams'
+              anyOf:
+              - $ref: '#/components/schemas/Txt2ImgParams'
+              - $ref: '#/components/schemas/Img2ImgParams'
+              title: Parameters
         required: true
       responses:
         '200':
           content:
             application/json:
               schema:
-                title: Response Img2Img Img2Img Post
+                title: Response Create Task Task Post
                 type: string
           description: Successful Response
         '422':
@@ -418,7 +430,7 @@ paths:
           description: Validation Error
       security:
       - OAuth2PasswordBearer: []
-      summary: Img2Img
+      summary: Create Task
   /task/{task_id}:
     get:
       operationId: poll_task_status_task__task_id__get
@@ -484,22 +496,28 @@ paths:
                 $ref: '#/components/schemas/AuthToken'
           description: Successful Response
       summary: Public Access Token
-  /txt2img:
+  /user/{username}:
     post:
-      operationId: txt2img_txt2img_post
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Txt2ImgParams'
+      operationId: signup_user__username__post
+      parameters:
+      - in: path
+        name: username
         required: true
+        schema:
+          title: Username
+          type: string
+      - in: query
+        name: password
+        required: true
+        schema:
+          title: Password
+          type: string
       responses:
         '200':
           content:
             application/json:
               schema:
-                title: Response Txt2Img Txt2Img Post
-                type: string
+                $ref: '#/components/schemas/UserBase'
           description: Successful Response
         '422':
           content:
@@ -507,6 +525,4 @@ paths:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
           description: Validation Error
-      security:
-      - OAuth2PasswordBearer: []
-      summary: Txt2Img
+      summary: Signup

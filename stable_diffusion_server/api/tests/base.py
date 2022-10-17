@@ -21,12 +21,13 @@ class BaseTestApp:
     async def test_txt2img_2img(self):
         async with self.client.websocket_connect() as ws:
             params = {
+                "task_type": "txt2img",
                 "model_id": "hf-internal-testing/tiny-stable-diffusion-pipe",
                 "prompt": "corgi wearing a top hat",
                 "steps": 2,
                 "safety_filter": False,
             }
-            response = self.client.post('/txt2img', json=params)
+            response = self.client.post('/task', json=params)
             assert response.status_code == 200
             task_id = response.json()
 
@@ -91,10 +92,11 @@ class BaseTestApp:
 
             # run the generated image through img2img
             response = self.client.post(
-                '/img2img',
-                json={
+                '/task',
+                json=params | {
                     "initial_image": uploaded_blob_id,
-                } | params
+                    "task_type": "img2img",
+                }
             )
             assert response.status_code == 200
             task_id = response.json()
