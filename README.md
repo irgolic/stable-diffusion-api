@@ -76,6 +76,7 @@ Help wanted.
 - [ ] Inpainting
 - [ ] Seed parameter
 - [ ] Cancel task endpoint
+- [ ] GFPGAN postprocessing (fix faces)
 - [ ] Speed up image generation
 - [ ] Progress update events (model download, image generation)
 - [ ] Custom tokenizers, supporting `((emphasis))` and `[alternating,prompts,0.4]`
