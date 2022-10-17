@@ -7,7 +7,7 @@ services:
 #    expose:
 #      - 6379
     ports:
-      - "6379:6379"
+      - "6379:${REDIS_PORT}"
     command: redis-server /app/deployment/redis.conf --stop-writes-on-bgsave-error no --loglevel debug --requirepass $REDIS_PASSWORD
     volumes:
 #      - redis:/data
@@ -23,7 +23,7 @@ services:
       - "8000:8000"
     environment:
       SECRET_KEY: $SECRET_KEY
-      REDIS_HOST: $REDIS_HOST
+      REDIS_HOST: redis
       REDIS_PASSWORD: $REDIS_PASSWORD
       REDIS_PORT: $REDIS_PORT
       ENABLE_PUBLIC_TOKEN: $ENABLE_PUBLIC_TOKEN
@@ -40,7 +40,7 @@ services:
     depends_on:
       - redis
     environment:
-      REDIS_HOST: $REDIS_HOST
+      REDIS_HOST: redis
       HUGGINGFACE_TOKEN: $HUGGINGFACE_TOKEN
       REDIS_PASSWORD: $REDIS_PASSWORD
       REDIS_PORT: $REDIS_PORT
@@ -58,7 +58,7 @@ services:
       - redis_worker
     environment:
       API_URL: http://api:8000
-      REDIS_HOST: $REDIS_HOST
+      REDIS_HOST: redis
       REDIS_PASSWORD: $REDIS_PASSWORD
       REDIS_PORT: $REDIS_PORT
     links:
