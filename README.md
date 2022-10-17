@@ -2,25 +2,34 @@
 
 [![OpenApi](https://img.shields.io/badge/OpenApi-3.0.2-black)](https://editor.swagger.io/?url=https://raw.githubusercontent.com/irgolic/stable-diffusion-server/master/openapi.yml)
 
-Easily run Txt2Img and Img2Img with any model published on [Hugging Face](https://huggingface.co/models).
+Easily serve Txt2Img and Img2Img with any model published on [Hugging Face](https://huggingface.co/models).
+The aim of this project is to provide a lightweight backend for 
 
 ## Usage
 
 Generate any client library from the [OpenApi](
-https://editor.swagger.io/?url=https://raw.githubusercontent.com/irgolic/stable-diffusion-server/master/openapi.yml?token%3DGHSAT0AAAAAABTFSDOFSU2W23KZ4XG72RYGY2MXGZA) specification.
+https://editor.swagger.io/?url=https://raw.githubusercontent.com/irgolic/stable-diffusion-server/master/openapi.yml) specification.
 
-[//]: # (FIXME add examples with either bash, python, or javascript)
+### Environment Variables
+
+
 
 ### Authentication
 
-Set environment variable `ENABLE_PUBLIC_TOKEN` to allow generation of public tokens. 
-Public tokens are not tied to a user and can be used by anyone.
+The server uses [OAuth2 Bearer Token](https://swagger.io/docs/specification/authentication/bearer-authentication/) for authentication. The token is passed in the `Authorization` header as a `Bearer` token.
 
-Alternatively, set environment variable `ENABLE_SIGNUP` to allow users to sign up and generate their own tokens.
+```http
+Authorization: Bearer <token>
+```
+
+Set environment variable `ENABLE_PUBLIC_TOKEN` to allow generation of public tokens at `POST /token/all`.
+
+Alternatively, set environment variable `ENABLE_SIGNUP` to allow users to sign up at `POST /user`. 
+Registered users can generate their own tokens at `POST /token/{username}`.
 
 ### Invocation
 
-`POST /txt2img` or `POST /img2img` to start a task, and get a `task_id`. 
+`POST /task` with either `Txt2ImgParams` or `Img2ImgParams` to start a task, and get a `task_id`. 
 The model will be downloaded and cached, and the task will be queued for execution.
 
 Supported parameters:
@@ -33,20 +42,20 @@ Supported parameters:
 - `scheduler`: either `plms`, `ddim`, or `k-lms`
 - `safety_filter`: enable safety checker, default `true`
 
-POST `/txt2img` also supports:
+Txt2Img also supports:
 - `width`: image width, default `512`
 - `height`: image height, default `512`
 
-POST `/img2img` also supports:
-- `initial_image`: image file **(required)**
+Img2Img also supports:
+- `initial_image`: blob id of image to be transformed **(required)**
 - `strength`: how much to change the image, default `0.8`
 
 Img2Img can reference a previously generated image's `blob_id`. 
-Alternatively, POST `/blob` to upload a blob, and get a new `blob_id`. 
+Alternatively, `POST /blob` to upload a new image, and get a `blob_id`.
 
 ### Job Status
 
-`GET /task/{task_id}` to get the last `event` fired by the task of a task.
+`GET /task/{task_id}` to get the last `event` broadcast by the task.
 
 Event types:
 - PendingEvent
@@ -65,7 +74,10 @@ A FinishedEvent contains an `image` field including its `blob_id` and `parameter
 ## Roadmap
 
 - [ ] GPU support (currently runs only on CPU) – testers needed!
+- [ ] Inpainting
 - [ ] Seed parameter
+- [ ] Cancel task endpoint
+- [ ] Progress update events (model download, image generation)
 - [ ] Custom tokenizers, supporting `((emphasis))` and `[alternating,prompts,0.4]`
 - [ ] More model providers
 

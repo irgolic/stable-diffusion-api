@@ -20,7 +20,7 @@ from stable_diffusion_server.engine.services.status_service import StatusService
 from stable_diffusion_server.engine.services.task_service import TaskService
 from stable_diffusion_server.models.blob import Blob
 from stable_diffusion_server.models.events import EventUnion
-from stable_diffusion_server.models.params import Txt2ImgParams, Img2ImgParams
+from stable_diffusion_server.models.params import Txt2ImgParams, Img2ImgParams, ParamsUnion
 from stable_diffusion_server.models.task import TaskId, Task
 from stable_diffusion_server.models.user import UserBase, AuthenticationError, User, AuthToken
 
@@ -148,22 +148,9 @@ def create_app(app_config: AppConfig) -> FastAPI:
     # API
     ###
 
-    @app.post("/txt2img", response_model=TaskId)
-    async def txt2img(
-        parameters: Txt2ImgParams,
-        task_service: TaskService = Depends(construct_task_service),
-        user: User = Depends(get_user),
-    ) -> TaskId:
-        task = Task(
-            parameters=parameters,
-            user=user,
-        )
-        task_service.push_task(task)
-        return task.task_id
-
-    @app.post("/img2img", response_model=TaskId)
-    async def img2img(
-        parameters: Img2ImgParams,
+    @app.post("/task", response_model=TaskId)
+    async def create_task(
+        parameters: ParamsUnion,
         task_service: TaskService = Depends(construct_task_service),
         user: User = Depends(get_user),
     ) -> TaskId:
