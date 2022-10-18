@@ -285,13 +285,19 @@ class AppClient:
     ):
         self.client = client
 
-        response = client.post('/token/all')
-        self.token = response.json()['access_token']
-        self.headers = {
-            "Authorization": f"Bearer {self.token}",
-        }
+        self.headers = {}
+        self.ws_stem = f'/events'
 
-        self.ws_stem = f'/events?token={self.token}'
+    def set_public_token(self):
+        response = self.client.post('/token/all')
+        token = response.json()['access_token']
+        self.set_token(token)
+
+    def set_token(self, token: str):
+        self.headers = {
+            "Authorization": f"Bearer {token}",
+        }
+        self.ws_stem = f'/events?token={token}'
 
     def get(self, *args, **kwargs):
         return self.client.get(*args, **kwargs, headers=self.headers)
