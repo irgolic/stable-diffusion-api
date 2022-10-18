@@ -35,7 +35,7 @@ class AppConfig(pydantic.BaseModel):
     ALGORITHM = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES = 240
 
-    ENABLE_PUBLIC_TOKEN: bool = bool(os.getenv('ENABLE_PUBLIC_TOKEN', False))
+    ENABLE_PUBLIC_ACCESS: bool = bool(os.getenv('ENABLE_PUBLIC_ACCESS', False))
     ENABLE_SIGNUP: bool = bool(os.getenv('ENABLE_SIGNUP', False))
 
 
@@ -53,7 +53,7 @@ def create_app(app_config: AppConfig) -> FastAPI:
             secret_key=app_config.SECRET_KEY,
             algorithm=app_config.ALGORITHM,
             access_token_expires=datetime.timedelta(minutes=app_config.ACCESS_TOKEN_EXPIRE_MINUTES),
-            allow_public_token=app_config.ENABLE_PUBLIC_TOKEN,
+            allow_public_token=app_config.ENABLE_PUBLIC_ACCESS,
         )
 
     oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
@@ -81,7 +81,7 @@ def create_app(app_config: AppConfig) -> FastAPI:
 
     @app.post("/token/all", response_model=AuthToken)
     async def public_access_token(user_repo: UserRepo = Depends(construct_user_repo)) -> AuthToken:
-        if not app_config.ENABLE_PUBLIC_TOKEN:
+        if not app_config.ENABLE_PUBLIC_ACCESS:
             raise HTTPException(status_code=403, detail="Public token is disabled")
         return user_repo.create_public_token()
 
