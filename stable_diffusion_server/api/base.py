@@ -1,6 +1,6 @@
 import os
 import datetime
-from typing import Type, Union
+from typing import Type, Union, Optional
 
 import pydantic
 import yaml
@@ -56,16 +56,26 @@ def create_app(app_config: AppConfig) -> FastAPI:
             allow_public_token=app_config.ENABLE_PUBLIC_ACCESS,
         )
 
-    oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
-
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
 
-    async def get_user(token: str = Depends(oauth2_scheme),
+    # Optional bearer token handler
+    optional_oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token", auto_error=False)
+
+    async def get_user(token: Optional[str] = Depends(optional_oauth2_scheme),
                        user_repo: UserRepo = Depends(construct_user_repo)) -> User:
+        if token is None:
+            if not app_config.ENABLE_PUBLIC_ACCESS:
+                raise credentials_exception
+
+            # create an ephemeral public user session
+            # no token means no way to receive events on websocket (auth per session identified by token)
+            # can still poll task status and use blobs though (auth by username, i.e. "all")
+            token = user_repo.create_public_token().access_token
+
         try:
             return user_repo.must_get_user_by_token(token)
         except AuthenticationError:
