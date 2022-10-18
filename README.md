@@ -78,7 +78,7 @@ Help wanted.
 - [ ] Cancel task endpoint
 - [ ] GFPGAN postprocessing (fix faces)
 - [ ] Speed up image generation
-- [ ] Progress update events (model download, image generation)
+- [ ] Progress update events (model download, image generation every n steps)
 - [ ] Custom tokenizers, supporting `((emphasis))` and `[alternating,prompts,0.4]`
 - [ ] More model providers
 - [ ] Other GPU support – testers needed!
