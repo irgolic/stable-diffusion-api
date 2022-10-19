@@ -8,7 +8,7 @@ import asyncio
 import json
 import requests.adapters
 from urllib.parse import unquote, urljoin, urlsplit
-
+from httpx import AsyncClient
 
 from starlette.testclient import (
     TestClient,
@@ -281,15 +281,15 @@ class AsyncioTestClient(Session):
 class AppClient:
     def __init__(
         self,
-        client: Union[TestClient, sessions.BaseUrlSession],
+        client: AsyncClient,
     ):
         self.client = client
 
         self.headers = {}
         self.ws_stem = f'/events'
 
-    def set_public_token(self):
-        response = self.client.post('/token/all')
+    async def set_public_token(self):
+        response = await self.client.post('/token/all')
         token = response.json()['access_token']
         self.set_token(token)
 
@@ -299,18 +299,25 @@ class AppClient:
         }
         self.ws_stem = f'/events?token={token}'
 
-    def get(self, *args, **kwargs):
-        return self.client.get(*args, **kwargs, headers=self.headers)
+    async def get(self, *args, **kwargs):
+        return await self.client.get(*args, **kwargs, headers=self.headers)
 
-    def post(self, *args, **kwargs):
-        return self.client.post(*args, **kwargs, headers=self.headers)
+    async def post(self, *args, **kwargs):
+        return await self.client.post(*args, **kwargs, headers=self.headers)
+
+    async def __aenter__(self, *args, **kwargs):
+        await self.client.__aenter__(*args, **kwargs)
+        return self
+
+    async def __aexit__(self, *args, **kwargs):
+        await self.client.__aexit__(*args, **kwargs)
 
     def websocket_connect(self):
         raise NotImplementedError
 
 
 class LocalAppClient(AppClient):
-    def __init__(self, client: TestClient, ws_client: AsyncioTestClient):
+    def __init__(self, client: AsyncClient, ws_client: AsyncioTestClient):
         super().__init__(client)
         self.ws_client = ws_client
 
@@ -319,10 +326,7 @@ class LocalAppClient(AppClient):
 
 
 class RemoteAppClient(AppClient):
-    def __init__(self, client: sessions.BaseUrlSession):
-        super().__init__(client)
-
     def websocket_connect(self):
-        ws_base_url = self.client.base_url.replace('http', 'ws')
+        ws_base_url = str(self.client.base_url).replace('http', 'ws')
         ws_url = f'{ws_base_url}{self.ws_stem}'
         return websockets.client.connect(ws_url)

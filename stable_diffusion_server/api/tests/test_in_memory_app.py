@@ -1,5 +1,7 @@
 import asyncio
 
+import pytest
+from httpx import AsyncClient
 from starlette.testclient import TestClient
 
 from stable_diffusion_server.api.tests.base import BaseTestApp
@@ -19,7 +21,7 @@ class TestInMemoryApp(BaseTestApp):
         if cls._runner_task is None or cls._runner_task.get_loop() is not loop:
             cls._runner_task = loop.create_task(create_runner())
         return LocalAppClient(
-            TestClient(fastapi_app),
+            AsyncClient(app=fastapi_app, base_url="http://testserver"),
             AsyncioTestClient(event_loop=loop,
                               app=fastapi_app)
         )

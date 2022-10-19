@@ -1,6 +1,7 @@
 import os
 
 import pytest
+from httpx import AsyncClient
 from requests_toolbelt import sessions
 
 from stable_diffusion_server.api.tests.base import BaseTestApp
@@ -12,5 +13,6 @@ class TestRedisAppE2E(BaseTestApp):
     @classmethod
     def get_client(cls):
         return RemoteAppClient(
-            sessions.BaseUrlSession(base_url=os.environ.get('API_URL', 'http://127.0.0.1:8000'))
+            # sessions.BaseUrlSession(base_url=os.environ.get('API_URL', 'http://127.0.0.1:8000'))
+            AsyncClient(base_url=os.environ.get('API_URL', 'http://127.0.0.1:8000')),
         )

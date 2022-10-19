@@ -3,6 +3,7 @@ import logging
 
 import pytest
 import redis
+from httpx import AsyncClient
 from starlette.testclient import TestClient
 
 from stable_diffusion_server.api import redis_app
@@ -27,7 +28,7 @@ class TestLiveRedisApp(BaseTestApp):
         loop = asyncio.get_event_loop()
         loop.create_task(create_runner())
         return LocalAppClient(
-            TestClient(redis_app.app),
+            AsyncClient(app=redis_app.app, base_url="http://testserver"),
             AsyncioTestClient(event_loop=loop,
                               app=redis_app.app)
         )

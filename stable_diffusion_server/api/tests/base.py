@@ -18,13 +18,14 @@ class BaseTestApp:
 
     # fixtures
 
-    @pytest.fixture(scope='function')
-    def client(self):
-        return self.get_client()
+    @pytest_asyncio.fixture(scope="function")
+    async def client(self):
+        async with self.get_client() as c:
+            yield c
 
     @pytest_asyncio.fixture(scope="function")
     async def websocket(self, client):
-        client.set_public_token()
+        await client.set_public_token()
         async with client.websocket_connect() as ws:
             yield ws
         ws.close()
@@ -89,25 +90,25 @@ class BaseTestApp:
 
     async def assert_poll_status(self, client, task_id, expected_event) -> dict[str, Any]:
         while True:
-            response = client.get(f'/task/{task_id}')
+            response = await client.get(f'/task/{task_id}')
             assert response.status_code == 200
             event = response.json()
             if event == expected_event:
                 return event
             await asyncio.sleep(0.1)
 
-    def post_task(self, client, params: dict[str, Any]) -> str:
-        response = client.post('/task', json=params)
+    async def post_task(self, client, params: dict[str, Any]) -> str:
+        response = await client.post('/task', json=params)
         assert response.status_code == 200
         return response.json()
 
-    def get_blob(self, client, blob_id: str) -> requests.Response:
-        response = client.get(f'/blob/{blob_id}')
+    async def get_blob(self, client, blob_id: str) -> requests.Response:
+        response = await client.get(f'/blob/{blob_id}')
         assert response.status_code == 200
         return response
 
-    def post_blob(self, client, data: bytes) -> requests.Response:
-        response = client.post('/blob', files={
+    async def post_blob(self, client, data: bytes) -> requests.Response:
+        response = await client.post('/blob', files={
             "blob_data": ("filename", io.BytesIO(data), "image/png"),
         })
         assert response.status_code == 200
@@ -125,7 +126,7 @@ class BaseTestApp:
         dummy_img2img_params,
         resolved_dummy_img2img_params
     ):
-        task_id = self.post_task(client, dummy_txt2img_params)
+        task_id = await self.post_task(client, dummy_txt2img_params)
 
         # pending event
         await self.assert_websocket_received({
@@ -156,14 +157,15 @@ class BaseTestApp:
         generated_image_blob_id = ws_event['image']['blob_id']
 
         # download the blob
-        response = self.get_blob(client, generated_image_blob_id)
+        response = await self.get_blob(client, generated_image_blob_id)
 
         # upload the blob
         img_bytes = response.content
-        uploaded_blob_id = self.post_blob(client, img_bytes).json()
+        upload_response = await self.post_blob(client, img_bytes)
+        uploaded_blob_id = upload_response.json()
 
         # run the generated image through img2img
-        task_id = self.post_task(client,
+        task_id = await self.post_task(client,
             dummy_img2img_params | {
                 "initial_image": uploaded_blob_id,
             }
@@ -200,7 +202,7 @@ class BaseTestApp:
         generated_image_blob_id = ws_event['image']['blob_id']
 
         # download the blob (and do nothing with it)
-        self.get_blob(client, generated_image_blob_id)
+        await self.get_blob(client, generated_image_blob_id)
 
     @pytest.mark.asyncio
     async def test_txt2img_2img_without_token(
@@ -211,7 +213,7 @@ class BaseTestApp:
         dummy_img2img_params,
         resolved_dummy_img2img_params,
     ):
-        task_id = self.post_task(client, dummy_txt2img_params)
+        task_id = await self.post_task(client, dummy_txt2img_params)
 
         # finished event
         expected_event = {
@@ -228,14 +230,15 @@ class BaseTestApp:
         generated_image_blob_id = event['image']['blob_id']
 
         # download the blob
-        response = self.get_blob(client, generated_image_blob_id)
+        response = await self.get_blob(client, generated_image_blob_id)
 
         # upload the blob
         img_bytes = response.content
-        uploaded_blob_id = self.post_blob(client, img_bytes).json()
+        upload_response = await self.post_blob(client, img_bytes)
+        uploaded_blob_id = upload_response.json()
 
         # run the generated image through img2img
-        task_id = self.post_task(client,
+        task_id = await self.post_task(client,
             dummy_img2img_params | {
                 "initial_image": uploaded_blob_id,
             }
@@ -258,4 +261,4 @@ class BaseTestApp:
         generated_image_blob_id = event['image']['blob_id']
 
         # download the blob (and do nothing with it)
-        self.get_blob(client, generated_image_blob_id)
+        await self.get_blob(client, generated_image_blob_id)
