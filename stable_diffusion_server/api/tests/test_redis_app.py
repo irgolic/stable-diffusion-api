@@ -3,8 +3,8 @@ import logging
 
 import pytest
 import redis
+from asgi_lifespan import LifespanManager
 from httpx import AsyncClient
-from starlette.testclient import TestClient
 
 from stable_diffusion_server.api import redis_app
 from stable_diffusion_server.api.tests.base import BaseTestApp
@@ -33,5 +33,6 @@ class TestLiveRedisApp(BaseTestApp):
         return LocalAppClient(
             AsyncClient(app=redis_app.app, base_url="http://testserver"),
             AsyncioTestClient(event_loop=loop,
-                              app=redis_app.app)
+                              app=redis_app.app),
+            LifespanManager(redis_app.app),
         )

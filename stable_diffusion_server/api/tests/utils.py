@@ -1,5 +1,6 @@
 from typing import Union, Optional, Any, Sequence, MutableMapping
 
+from asgi_lifespan import LifespanManager
 from requests import PreparedRequest, Session, Response
 from requests_toolbelt import sessions
 import websockets.client
@@ -317,12 +318,23 @@ class AppClient:
 
 
 class LocalAppClient(AppClient):
-    def __init__(self, client: AsyncClient, ws_client: AsyncioTestClient):
+    def __init__(self, client: AsyncClient,
+                 ws_client: AsyncioTestClient,
+                 lifespan_manager: LifespanManager):
         super().__init__(client)
         self.ws_client = ws_client
+        self.lifespan = lifespan_manager
 
     def websocket_connect(self):
         return self.ws_client.websocket_connect(self.ws_stem)
+
+    async def __aenter__(self, *args, **kwargs):
+        await self.lifespan.__aenter__(*args, **kwargs)
+        return await super().__aenter__(*args, **kwargs)
+
+    async def __aexit__(self, *args, **kwargs):
+        await super().__aexit__(*args, **kwargs)
+        await self.lifespan.__aexit__(*args, **kwargs)
 
 
 class RemoteAppClient(AppClient):
