@@ -35,12 +35,13 @@ class AppConfig(pydantic.BaseModel):
     messaging_repo_class: Type[MessagingRepo]
     user_repo: Type[UserRepo]
 
-    SECRET_KEY = os.environ["SECRET_KEY"]
-    ALGORITHM = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES = 240
+    SECRET_KEY: str = os.environ["SECRET_KEY"]
+    ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 240
 
-    ENABLE_PUBLIC_ACCESS: bool = bool(os.getenv('ENABLE_PUBLIC_ACCESS', False))
-    ENABLE_SIGNUP: bool = bool(os.getenv('ENABLE_SIGNUP', False))
+    PRINT_LINK_WITH_TOKEN: bool = os.environ["PRINT_LINK_WITH_TOKEN"] == "1"
+    ENABLE_PUBLIC_ACCESS: bool = os.environ["ENABLE_PUBLIC_ACCESS"] == "1"
+    ENABLE_SIGNUP: bool = os.environ["ENABLE_SIGNUP"] == "1"
 
 
 def create_app(app_config: AppConfig) -> FastAPI:
@@ -346,5 +347,34 @@ def create_app(app_config: AppConfig) -> FastAPI:
     with open('openapi.yml', 'w') as f:
         yaml.dump(openapi_schema, f)
     app.openapi_schema = openapi_schema
+
+    ###
+    # Create default user
+    ###
+
+    def print_link_with_token() -> None:
+        # construct token repo
+        user_repo = app_config.user_repo(
+            secret_key=app_config.SECRET_KEY,
+            algorithm=app_config.ALGORITHM,
+            access_token_expires=datetime.timedelta(minutes=app_config.ACCESS_TOKEN_EXPIRE_MINUTES),
+            allow_public_token=app_config.ENABLE_PUBLIC_ACCESS,
+        )
+
+        # create default user
+        username = "default_" + str(uuid.uuid4())
+        password = bcrypt.hashpw(str(uuid.uuid4()).encode(), bcrypt.gensalt()).decode()
+        user_repo.create_user(user=UserBase(username=username), password=password)
+        token = user_repo.create_token_by_username_and_password(username=username, password=password)
+
+        # print link
+        print(f"Try visiting http://localhost:8000/txt2img?"
+              f"prompt=corgi&"
+              f"steps=2&"
+              f"model_id=CompVis/stable-diffusion-v1-4&"
+              f"token={token.access_token}")
+
+    if app_config.PRINT_LINK_WITH_TOKEN:
+        print_link_with_token()
 
     return app
