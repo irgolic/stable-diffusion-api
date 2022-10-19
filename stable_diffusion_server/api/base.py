@@ -19,7 +19,7 @@ from stable_diffusion_server.engine.services.event_service import EventListener,
 from stable_diffusion_server.engine.services.status_service import StatusService
 from stable_diffusion_server.engine.services.task_service import TaskService
 from stable_diffusion_server.models.blob import Blob
-from stable_diffusion_server.models.events import EventUnion
+from stable_diffusion_server.models.events import EventUnion, FinishedEvent, CancelledEvent
 from stable_diffusion_server.models.params import Txt2ImgParams, Img2ImgParams, ParamsUnion
 from stable_diffusion_server.models.task import TaskId, Task
 from stable_diffusion_server.models.user import UserBase, AuthenticationError, User, AuthToken
@@ -157,7 +157,7 @@ def create_app(app_config: AppConfig) -> FastAPI:
         return app_config.blob_repo_class()
 
     ###
-    # API
+    # Asynchronous API
     ###
 
     @app.post("/task", response_model=TaskId)
@@ -189,6 +189,10 @@ def create_app(app_config: AppConfig) -> FastAPI:
         if event is None:
             raise RuntimeError("Task exists but no event found")
         return event
+
+    ###
+    # Blobs (eventually to be replaced with a proper object store, and pre-signed POST/GET URLs)
+    ###
 
     @app.get(
         "/blob/{blob_id}",
@@ -225,6 +229,42 @@ def create_app(app_config: AppConfig) -> FastAPI:
             username=user.username,
         )
         return blob_repo.put_blob(blob)
+
+    ###
+    # Synchronous API (convenience wrappers for the asynchronous API)
+    ###
+
+    @app.get("/txt2img", responses={
+        200: {
+            "content": {
+                "image/png": {},
+            },
+        },
+    })
+    async def txt2img(
+        parameters: Txt2ImgParams = Depends(),
+        user: User = Depends(get_user),
+        task_service: TaskService = Depends(construct_task_service),
+        event_listener: EventListener = Depends(construct_event_listener),
+        blob_repo: BlobRepo = Depends(construct_blob_repo),
+    ) -> Response:
+        task = Task(
+            parameters=parameters,
+            user=user,
+        )
+        task_service.push_task(task)
+        async for _, event in event_listener.listen():
+            if event.task_id != task.task_id:
+                continue
+            if isinstance(event, CancelledEvent):
+                raise HTTPException(status_code=500, detail=event.reason)
+            if isinstance(event, FinishedEvent):
+                blob_id = event.image.blob_id
+                blob = blob_repo.get_blob(blob_id, username=user.username)
+                if blob is None:
+                    raise RuntimeError("Blob not found")
+                return Response(content=blob.data, media_type="image/png")
+        raise RuntimeError("Event stream ended unexpectedly")
 
     ###
     # Websocket

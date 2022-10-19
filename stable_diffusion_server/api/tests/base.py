@@ -262,3 +262,14 @@ class BaseTestApp:
 
         # download the blob (and do nothing with it)
         await self.get_blob(client, generated_image_blob_id)
+
+    @pytest.mark.asyncio
+    async def test_sync_txt2img(
+        self,
+        client,
+        dummy_txt2img_params,
+        resolved_dummy_txt2img_params,
+    ):
+        response = await client.get('/txt2img', params=dummy_txt2img_params)
+        assert response.status_code == 200
+        assert response.headers['Content-Type'] == 'image/png'
