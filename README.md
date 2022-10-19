@@ -11,23 +11,7 @@ The aim is to provide a lightweight, easily extensible backend for image generat
 Generate any client library from the [OpenApi](
 https://editor.swagger.io/?url=https://raw.githubusercontent.com/irgolic/stable-diffusion-server/master/openapi.yml) specification.
 
-### Authentication
-
-The server uses [OAuth2 Bearer Token](https://swagger.io/docs/specification/authentication/bearer-authentication/) for authentication. The token is passed in the `Authorization` header as a `Bearer` token.
-
-```http
-Authorization: Bearer <token>
-```
-
-Set environment variable `ENABLE_PUBLIC_ACCESS` to allow generation of public tokens at `POST /token/all`.
-
-Alternatively, set environment variable `ENABLE_SIGNUP` to allow users to sign up at `POST /user`. 
-Registered users can generate their own tokens at `POST /token/{username}`.
-
-### Invocation
-
-`POST /task` with either `Txt2ImgParams` or `Img2ImgParams` to start a task, and get a `task_id`. 
-The model will be downloaded and cached, and the task will be queued for execution.
+### Features
 
 Supported parameters:
 - `prompt`: text prompt **(required)**, e.g. `corgi with a top hat`
@@ -44,15 +28,44 @@ Txt2Img also supports:
 - `height`: image height, default `512`
 
 Img2Img also supports:
-- `initial_image`: blob id of image to be transformed **(required)**
+- `initial_image`: `blob_id` of image to be transformed **(required)**
 - `strength`: how much to change the image, default `0.8`
 
 Img2Img can reference a previously generated image's `blob_id`. 
 Alternatively, `POST /blob` to upload a new image, and get a `blob_id`.
 
-### Job Status
+### Authentication
 
-`GET /task/{task_id}` to get the last `event` broadcast by the task.
+The server uses [OAuth2 Bearer Token](https://swagger.io/docs/specification/authentication/bearer-authentication/) for authentication. The token is passed in the `Authorization` header as a `Bearer` token.
+
+```http
+Authorization: Bearer <token>
+```
+
+To disable authentication, and allow generation of public tokens at `POST /token/all`, set environment variable `ENABLE_PUBLIC_ACCESS`.
+
+Alternatively, set environment variable `ENABLE_SIGNUP` to allow users to sign up at `POST /user`. 
+Registered users can generate their own tokens at `POST /token/{username}`.
+
+### Synchronous Interface
+
+For convenience, the server provides a synchronous endpoint for Txt2Img.
+
+Try visiting `/txt2img?prompt=corgi&steps=5` in your browser.
+
+The server will wait for the model to download and generate an image before returning the request.
+It is preferable to use the asynchronous endpoints for production use.
+
+### Asynchronous Interface (recommended)
+
+#### Invocation
+
+`POST /task` with either `Txt2ImgParams` or `Img2ImgParams` to start a task, and get a `task_id`. 
+The model will be downloaded and cached, and the task will be queued for execution.
+
+#### Job Status
+
+`GET /task/{task_id}` to get the last `event` broadcast by the task, or subscribe to the websocket endpoint `/events?token=<token>` to get a stream of events as they occur.
 
 Event types:
 - PendingEvent
@@ -60,9 +73,7 @@ Event types:
 - FinishedEvent (with `blob_id`)
 - CancelledEvent (with `reason`)
 
-Alternatively, subscribe to the websocket endpoint `/events?token=<token>` to get a stream of events as they occur.
-
-### Results
+#### Results
 
 A FinishedEvent contains an `image` field including its `blob_id` and `parameters_used`.
 
