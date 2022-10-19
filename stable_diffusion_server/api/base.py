@@ -1,6 +1,8 @@
+import asyncio
 import os
 import datetime
-from typing import Type, Union, Optional
+from collections import defaultdict
+from typing import Type, Union, Optional, AsyncGenerator
 
 import pydantic
 import yaml
@@ -144,17 +146,47 @@ def create_app(app_config: AppConfig) -> FastAPI:
             status_service=status_service,
         )
 
-    async def construct_event_listener(
-        messaging_repo: MessagingRepo = Depends(construct_messaging_repo),
-    ):
-        listener = EventListener(
-            messaging_repo=messaging_repo,
-        )
-        await listener.initialize()
-        return listener
-
     async def construct_blob_repo() -> BlobRepo:
         return app_config.blob_repo_class()
+
+    ###
+    # Event listener
+    ###
+
+    queues_by_session_id: dict[str, list[asyncio.Queue]] = defaultdict(list)
+    queues_by_task_id: dict[TaskId, list[asyncio.Queue]] = defaultdict(list)
+
+    async def event_listener():
+        listener = EventListener(
+            messaging_repo=app_config.messaging_repo_class(),
+        )
+        async for session_id, event in listener.listen():
+            for queue in queues_by_session_id[session_id]:
+                await queue.put(event)
+            for queue in queues_by_task_id[event.task_id]:
+                await queue.put(event)
+
+    @app.on_event("startup")
+    async def startup_event():
+        asyncio.create_task(event_listener())
+
+    async def subscribe_to_session(session_id: str) -> AsyncGenerator[EventUnion, None]:
+        queue = asyncio.Queue()
+        queues_by_session_id[session_id].append(queue)
+        try:
+            while True:
+                yield await queue.get()
+        finally:
+            queues_by_session_id[session_id].remove(queue)
+
+    async def subscribe_to_task(task_id: TaskId) -> AsyncGenerator[EventUnion, None]:
+        queue = asyncio.Queue()
+        queues_by_task_id[task_id].append(queue)
+        try:
+            while True:
+                yield await queue.get()
+        finally:
+            queues_by_task_id[task_id].remove(queue)
 
     ###
     # Asynchronous API
@@ -245,7 +277,6 @@ def create_app(app_config: AppConfig) -> FastAPI:
         parameters: Txt2ImgParams = Depends(),
         user: User = Depends(get_user),
         task_service: TaskService = Depends(construct_task_service),
-        event_listener: EventListener = Depends(construct_event_listener),
         blob_repo: BlobRepo = Depends(construct_blob_repo),
     ) -> Response:
         task = Task(
@@ -253,9 +284,7 @@ def create_app(app_config: AppConfig) -> FastAPI:
             user=user,
         )
         task_service.push_task(task)
-        async for _, event in event_listener.listen():
-            if event.task_id != task.task_id:
-                continue
+        async for event in subscribe_to_task(task.task_id):
             if isinstance(event, CancelledEvent):
                 raise HTTPException(status_code=500, detail=event.reason)
             if isinstance(event, FinishedEvent):
@@ -294,12 +323,9 @@ def create_app(app_config: AppConfig) -> FastAPI:
     async def websocket_endpoint(
         websocket: websockets.WebSocket,
         user: User = Depends(get_ws_user),
-        event_listener: EventListener = Depends(construct_event_listener),
     ):
         await websocket.accept()
-        async for session_id, event in event_listener.listen():
-            if session_id != user.session_id:
-                continue
+        async for event in subscribe_to_session(user.session_id):
             await websocket.send_json(event.json())
         await websocket.close()
 
