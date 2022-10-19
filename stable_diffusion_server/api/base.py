@@ -1,9 +1,11 @@
 import asyncio
 import os
 import datetime
+import uuid
 from collections import defaultdict
 from typing import Type, Union, Optional, AsyncGenerator
 
+import bcrypt
 import pydantic
 import yaml
 from fastapi.openapi.utils import get_openapi
@@ -67,8 +69,13 @@ def create_app(app_config: AppConfig) -> FastAPI:
     # Optional bearer token handler
     optional_oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token", auto_error=False)
 
-    async def get_user(token: Optional[str] = Depends(optional_oauth2_scheme),
-                       user_repo: UserRepo = Depends(construct_user_repo)) -> User:
+    async def get_user(
+        header_token: Optional[str] = Depends(optional_oauth2_scheme),
+        query_token: Optional[str] = Query(default=None, alias="token"),
+        user_repo: UserRepo = Depends(construct_user_repo)
+    ) -> User:
+        token = header_token or query_token
+
         if token is None:
             if not app_config.ENABLE_PUBLIC_ACCESS:
                 raise credentials_exception
@@ -299,24 +306,19 @@ def create_app(app_config: AppConfig) -> FastAPI:
     # Websocket
     ###
 
-    async def get_token(
-        websocket: websockets.WebSocket,
-        token: Union[str, None] = Query(default=None),
-    ) -> str:
-        if token is None:
-            await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
-            raise HTTPException(status_code=status.WS_1008_POLICY_VIOLATION, detail="No session or token")
-        return token
-
     async def get_ws_user(
         websocket: websockets.WebSocket,
-        token: str = Depends(get_token),
+        token: Union[str, None] = Query(default=None),
         user_repo: UserRepo = Depends(construct_user_repo),
     ) -> User:
+        if token is None:
+            await websocket.close(code=1008, reason="Missing token")
+            raise HTTPException(status_code=401, detail="Unauthorized")
+
         try:
             return user_repo.must_get_user_by_token(token)
         except AuthenticationError:
-            await websocket.close(code=status.HTTP_401_UNAUTHORIZED)
+            await websocket.close(code=1008, reason="Invalid token")
             raise HTTPException(status_code=401, detail="User not found")
 
     @app.websocket('/events')

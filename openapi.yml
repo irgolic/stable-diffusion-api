@@ -351,6 +351,13 @@ paths:
   /blob:
     post:
       operationId: post_blob_blob_post
+      parameters:
+      - in: query
+        name: query_token
+        required: false
+        schema:
+          title: Query Token
+          type: string
       requestBody:
         content:
           multipart/form-data:
@@ -384,6 +391,12 @@ paths:
         schema:
           title: Blob Id
           type: string
+      - in: query
+        name: query_token
+        required: false
+        schema:
+          title: Query Token
+          type: string
       responses:
         '200':
           content:
@@ -405,6 +418,13 @@ paths:
   /task:
     post:
       operationId: create_task_task_post
+      parameters:
+      - in: query
+        name: query_token
+        required: false
+        schema:
+          title: Query Token
+          type: string
       requestBody:
         content:
           application/json:
@@ -440,6 +460,12 @@ paths:
         required: true
         schema:
           title: Task Id
+          type: string
+      - in: query
+        name: query_token
+        required: false
+        schema:
+          title: Query Token
           type: string
       responses:
         '200':
@@ -584,6 +610,12 @@ paths:
           default: 512
           title: Height
           type: integer
+      - in: query
+        name: query_token
+        required: false
+        schema:
+          title: Query Token
+          type: string
       responses:
         '200':
           content:
