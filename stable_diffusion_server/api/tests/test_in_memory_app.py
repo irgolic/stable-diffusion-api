@@ -17,8 +17,7 @@ class TestInMemoryApp(BaseTestApp):
     @classmethod
     def get_client(cls):
         loop = asyncio.get_event_loop()
-        # pytest starts a new event loop for each test, so we need to create a new runner for each test
-        if cls._runner_task is None or cls._runner_task.get_loop() is not loop:
+        if cls._runner_task is None:
             cls._runner_task = loop.create_task(create_runner())
         return LocalAppClient(
             AsyncClient(app=fastapi_app, base_url="http://testserver"),

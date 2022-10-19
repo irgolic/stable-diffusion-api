@@ -23,10 +23,13 @@ except redis.exceptions.RedisError as e:
 
 
 class TestLiveRedisApp(BaseTestApp):
+    _runner_task = None
+
     @classmethod
     def get_client(cls):
         loop = asyncio.get_event_loop()
-        loop.create_task(create_runner())
+        if cls._runner_task is None:
+            cls._runner_task = loop.create_task(create_runner())
         return LocalAppClient(
             AsyncClient(app=redis_app.app, base_url="http://testserver"),
             AsyncioTestClient(event_loop=loop,
