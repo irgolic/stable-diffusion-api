@@ -6,12 +6,7 @@
 Simple backend to serve Txt2Img and Img2Img with any model published on [Hugging Face](https://huggingface.co/models).
 The aim is to provide a lightweight, easily extensible backend for image generation.
 
-## Usage
-
-Generate any client library from the [OpenApi](
-https://editor.swagger.io/?url=https://raw.githubusercontent.com/irgolic/stable-diffusion-server/master/openapi.yml) specification.
-
-### Features
+## Features
 
 Supported parameters:
 - `prompt`: text prompt **(required)**, e.g. `corgi with a top hat`
@@ -34,24 +29,30 @@ Img2Img also supports:
 Img2Img can reference a previously generated image's `blob_id`. 
 Alternatively, `POST /blob` to upload a new image, and get a `blob_id`.
 
+## Usage
+
+Generate any client library from the [OpenApi](
+https://editor.swagger.io/?url=https://raw.githubusercontent.com/irgolic/stable-diffusion-server/master/openapi.yml) specification.
+
 ### Authentication
 
-The server uses [OAuth2 Bearer Token](https://swagger.io/docs/specification/authentication/bearer-authentication/) for authentication. The token is passed in the `Authorization` header as a `Bearer` token.
+The token is passed either among query parameters (`/txt2img?token=...`), or via the `Authorization` header 
+as a `Bearer` token [(OAuth2 Bearer Authentication)](https://swagger.io/docs/specification/authentication/bearer-authentication/).
 
-```http
-Authorization: Bearer <token>
-```
+To disable authentication, and allow generation of public tokens at `POST /token/all`, 
+set environment variable `ENABLE_PUBLIC_ACCESS`.
 
-To disable authentication, and allow generation of public tokens at `POST /token/all`, set environment variable `ENABLE_PUBLIC_ACCESS`.
-
-Alternatively, set environment variable `ENABLE_SIGNUP` to allow users to sign up at `POST /user`. 
+To allow users to sign up at `POST /user`, 
+set environment variable `ENABLE_SIGNUP`. 
 Registered users can generate their own tokens at `POST /token/{username}`.
 
 ### Synchronous Interface
 
 For convenience, the server provides a synchronous endpoint for Txt2Img.
 
-Try visiting `/txt2img?prompt=corgi&steps=5` in your browser.
+Following `.env.example`, the server prints an example URL (i.e., `/txt2img?prompt=corgi&steps=5?token=...`) 
+that you can visit in the browser.
+To disable this, unset environment variable `PRINT_LINK_WITH_TOKEN`.
 
 The server will wait for the model to download and generate an image before returning the request.
 It is preferable to use the asynchronous endpoints for production use.
