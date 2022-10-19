@@ -1,6 +1,8 @@
+import asyncio
 import os
 import datetime
-from typing import Type, Union
+from collections import defaultdict
+from typing import Type, Union, Optional, AsyncGenerator
 
 import pydantic
 import yaml
@@ -19,7 +21,7 @@ from stable_diffusion_server.engine.services.event_service import EventListener,
 from stable_diffusion_server.engine.services.status_service import StatusService
 from stable_diffusion_server.engine.services.task_service import TaskService
 from stable_diffusion_server.models.blob import Blob
-from stable_diffusion_server.models.events import EventUnion
+from stable_diffusion_server.models.events import EventUnion, FinishedEvent, CancelledEvent
 from stable_diffusion_server.models.params import Txt2ImgParams, Img2ImgParams, ParamsUnion
 from stable_diffusion_server.models.task import TaskId, Task
 from stable_diffusion_server.models.user import UserBase, AuthenticationError, User, AuthToken
@@ -35,7 +37,7 @@ class AppConfig(pydantic.BaseModel):
     ALGORITHM = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES = 240
 
-    ENABLE_PUBLIC_TOKEN: bool = bool(os.getenv('ENABLE_PUBLIC_TOKEN', False))
+    ENABLE_PUBLIC_ACCESS: bool = bool(os.getenv('ENABLE_PUBLIC_ACCESS', False))
     ENABLE_SIGNUP: bool = bool(os.getenv('ENABLE_SIGNUP', False))
 
 
@@ -53,10 +55,8 @@ def create_app(app_config: AppConfig) -> FastAPI:
             secret_key=app_config.SECRET_KEY,
             algorithm=app_config.ALGORITHM,
             access_token_expires=datetime.timedelta(minutes=app_config.ACCESS_TOKEN_EXPIRE_MINUTES),
-            allow_public_token=app_config.ENABLE_PUBLIC_TOKEN,
+            allow_public_token=app_config.ENABLE_PUBLIC_ACCESS,
         )
-
-    oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -64,8 +64,20 @@ def create_app(app_config: AppConfig) -> FastAPI:
         headers={"WWW-Authenticate": "Bearer"},
     )
 
-    async def get_user(token: str = Depends(oauth2_scheme),
+    # Optional bearer token handler
+    optional_oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token", auto_error=False)
+
+    async def get_user(token: Optional[str] = Depends(optional_oauth2_scheme),
                        user_repo: UserRepo = Depends(construct_user_repo)) -> User:
+        if token is None:
+            if not app_config.ENABLE_PUBLIC_ACCESS:
+                raise credentials_exception
+
+            # create an ephemeral public user session
+            # no token means no way to receive events on websocket (auth per session identified by token)
+            # can still poll task status and use blobs though (auth by username, i.e. "all")
+            token = user_repo.create_public_token().access_token
+
         try:
             return user_repo.must_get_user_by_token(token)
         except AuthenticationError:
@@ -81,7 +93,7 @@ def create_app(app_config: AppConfig) -> FastAPI:
 
     @app.post("/token/all", response_model=AuthToken)
     async def public_access_token(user_repo: UserRepo = Depends(construct_user_repo)) -> AuthToken:
-        if not app_config.ENABLE_PUBLIC_TOKEN:
+        if not app_config.ENABLE_PUBLIC_ACCESS:
             raise HTTPException(status_code=403, detail="Public token is disabled")
         return user_repo.create_public_token()
 
@@ -134,20 +146,50 @@ def create_app(app_config: AppConfig) -> FastAPI:
             status_service=status_service,
         )
 
-    async def construct_event_listener(
-        messaging_repo: MessagingRepo = Depends(construct_messaging_repo),
-    ):
-        listener = EventListener(
-            messaging_repo=messaging_repo,
-        )
-        await listener.initialize()
-        return listener
-
     async def construct_blob_repo() -> BlobRepo:
         return app_config.blob_repo_class()
 
     ###
-    # API
+    # Event listener
+    ###
+
+    queues_by_session_id: dict[str, list[asyncio.Queue]] = defaultdict(list)
+    queues_by_task_id: dict[TaskId, list[asyncio.Queue]] = defaultdict(list)
+
+    async def event_listener():
+        listener = EventListener(
+            messaging_repo=app_config.messaging_repo_class(),
+        )
+        async for session_id, event in listener.listen():
+            for queue in queues_by_session_id[session_id]:
+                await queue.put(event)
+            for queue in queues_by_task_id[event.task_id]:
+                await queue.put(event)
+
+    @app.on_event("startup")
+    async def startup_event():
+        asyncio.create_task(event_listener())
+
+    async def subscribe_to_session(session_id: str) -> AsyncGenerator[EventUnion, None]:
+        queue = asyncio.Queue()
+        queues_by_session_id[session_id].append(queue)
+        try:
+            while True:
+                yield await queue.get()
+        finally:
+            queues_by_session_id[session_id].remove(queue)
+
+    async def subscribe_to_task(task_id: TaskId) -> AsyncGenerator[EventUnion, None]:
+        queue = asyncio.Queue()
+        queues_by_task_id[task_id].append(queue)
+        try:
+            while True:
+                yield await queue.get()
+        finally:
+            queues_by_task_id[task_id].remove(queue)
+
+    ###
+    # Asynchronous API
     ###
 
     @app.post("/task", response_model=TaskId)
@@ -179,6 +221,10 @@ def create_app(app_config: AppConfig) -> FastAPI:
         if event is None:
             raise RuntimeError("Task exists but no event found")
         return event
+
+    ###
+    # Blobs (eventually to be replaced with a proper object store, and pre-signed POST/GET URLs)
+    ###
 
     @app.get(
         "/blob/{blob_id}",
@@ -217,6 +263,39 @@ def create_app(app_config: AppConfig) -> FastAPI:
         return blob_repo.put_blob(blob)
 
     ###
+    # Synchronous API (convenience wrappers for the asynchronous API)
+    ###
+
+    @app.get("/txt2img", responses={
+        200: {
+            "content": {
+                "image/png": {},
+            },
+        },
+    })
+    async def txt2img(
+        parameters: Txt2ImgParams = Depends(),
+        user: User = Depends(get_user),
+        task_service: TaskService = Depends(construct_task_service),
+        blob_repo: BlobRepo = Depends(construct_blob_repo),
+    ) -> Response:
+        task = Task(
+            parameters=parameters,
+            user=user,
+        )
+        task_service.push_task(task)
+        async for event in subscribe_to_task(task.task_id):
+            if isinstance(event, CancelledEvent):
+                raise HTTPException(status_code=500, detail=event.reason)
+            if isinstance(event, FinishedEvent):
+                blob_id = event.image.blob_id
+                blob = blob_repo.get_blob(blob_id, username=user.username)
+                if blob is None:
+                    raise RuntimeError("Blob not found")
+                return Response(content=blob.data, media_type="image/png")
+        raise RuntimeError("Event stream ended unexpectedly")
+
+    ###
     # Websocket
     ###
 
@@ -244,12 +323,9 @@ def create_app(app_config: AppConfig) -> FastAPI:
     async def websocket_endpoint(
         websocket: websockets.WebSocket,
         user: User = Depends(get_ws_user),
-        event_listener: EventListener = Depends(construct_event_listener),
     ):
         await websocket.accept()
-        async for session_id, event in event_listener.listen():
-            if session_id != user.session_id:
-                continue
+        async for event in subscribe_to_session(user.session_id):
             await websocket.send_json(event.json())
         await websocket.close()
 

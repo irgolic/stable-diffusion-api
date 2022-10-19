@@ -9,7 +9,7 @@ env:
   REDIS_PORT: 6379
   REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
   SECRET_KEY: ${{ secrets.SECRET_KEY }}
-  ENABLE_PUBLIC_TOKEN: 1
+  ENABLE_PUBLIC_ACCESS: 1
   HUGGINGFACE_TOKEN: ${{ secrets.HUGGINGFACE_TOKEN }}
 
 jobs:
@@ -98,7 +98,7 @@ jobs:
              --port ${{ env.REDIS_PORT }}
 
       - name: Run Tests
-        run: poetry run pytest
+        run: poetry run pytest -s
   end-to-end:
     runs-on: ubuntu-latest
     timeout-minutes: 15

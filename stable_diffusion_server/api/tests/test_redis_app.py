@@ -3,7 +3,8 @@ import logging
 
 import pytest
 import redis
-from starlette.testclient import TestClient
+from asgi_lifespan import LifespanManager
+from httpx import AsyncClient
 
 from stable_diffusion_server.api import redis_app
 from stable_diffusion_server.api.tests.base import BaseTestApp
@@ -22,12 +23,16 @@ except redis.exceptions.RedisError as e:
 
 
 class TestLiveRedisApp(BaseTestApp):
+    _runner_task = None
+
     @classmethod
     def get_client(cls):
         loop = asyncio.get_event_loop()
-        loop.create_task(create_runner())
+        if cls._runner_task is None:
+            cls._runner_task = loop.create_task(create_runner())
         return LocalAppClient(
-            TestClient(redis_app.app),
+            AsyncClient(app=redis_app.app, base_url="http://testserver"),
             AsyncioTestClient(event_loop=loop,
-                              app=redis_app.app)
+                              app=redis_app.app),
+            LifespanManager(redis_app.app),
         )

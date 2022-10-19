@@ -1,6 +1,8 @@
 import asyncio
 
-from starlette.testclient import TestClient
+import pytest
+from httpx import AsyncClient
+from asgi_lifespan import LifespanManager
 
 from stable_diffusion_server.api.tests.base import BaseTestApp
 
@@ -10,12 +12,16 @@ from stable_diffusion_server.engine.workers.in_memory_worker import create_runne
 
 
 class TestInMemoryApp(BaseTestApp):
+    _runner_task = None
+
     @classmethod
     def get_client(cls):
         loop = asyncio.get_event_loop()
-        loop.create_task(create_runner())
+        if cls._runner_task is None:
+            cls._runner_task = loop.create_task(create_runner())
         return LocalAppClient(
-            TestClient(fastapi_app),
+            AsyncClient(app=fastapi_app, base_url="http://testserver"),
             AsyncioTestClient(event_loop=loop,
-                              app=fastapi_app)
+                              app=fastapi_app),
+            LifespanManager(fastapi_app),
         )

@@ -19,7 +19,7 @@ The server uses [OAuth2 Bearer Token](https://swagger.io/docs/specification/auth
 Authorization: Bearer <token>
 ```
 
-Set environment variable `ENABLE_PUBLIC_TOKEN` to allow generation of public tokens at `POST /token/all`.
+Set environment variable `ENABLE_PUBLIC_ACCESS` to allow generation of public tokens at `POST /token/all`.
 
 Alternatively, set environment variable `ENABLE_SIGNUP` to allow users to sign up at `POST /user`. 
 Registered users can generate their own tokens at `POST /token/{username}`.
@@ -78,7 +78,7 @@ Help wanted.
 - [ ] Cancel task endpoint
 - [ ] GFPGAN postprocessing (fix faces)
 - [ ] Speed up image generation
-- [ ] Progress update events (model download, image generation)
+- [ ] Progress update events (model download, image generation every n steps)
 - [ ] Custom tokenizers, supporting `((emphasis))` and `[alternating,prompts,0.4]`
 - [ ] More model providers
 - [ ] Other GPU support – testers needed!
@@ -116,7 +116,7 @@ See `.env.example` for a list of example environment variable values.
 Copy `.env.example` to `.env` and edit as needed (make sure to regenerate the secrets).
 
 - `SECRET_KEY`: The secret key used to sign the JWT tokens.
-- `ENABLE_PUBLIC_TOKEN`: Whether to enable public token generation (anything except empty string enables it).
+- `ENABLE_PUBLIC_ACCESS`: Whether to enable public token generation (anything except empty string enables it).
 - `ENABLE_SIGNUP`: Whether to enable user signup (anything except empty string enables it).
 - `REDIS_PORT`: The port of the Redis server.
 - `REDIS_HOST`: The host of the Redis server.

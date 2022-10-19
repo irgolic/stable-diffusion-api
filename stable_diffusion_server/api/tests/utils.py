@@ -1,5 +1,6 @@
 from typing import Union, Optional, Any, Sequence, MutableMapping
 
+from asgi_lifespan import LifespanManager
 from requests import PreparedRequest, Session, Response
 from requests_toolbelt import sessions
 import websockets.client
@@ -8,7 +9,7 @@ import asyncio
 import json
 import requests.adapters
 from urllib.parse import unquote, urljoin, urlsplit
-
+from httpx import AsyncClient
 
 from starlette.testclient import (
     TestClient,
@@ -281,42 +282,63 @@ class AsyncioTestClient(Session):
 class AppClient:
     def __init__(
         self,
-        client: Union[TestClient, sessions.BaseUrlSession],
+        client: AsyncClient,
     ):
         self.client = client
 
-        response = client.post('/token/all')
-        self.token = response.json()['access_token']
+        self.headers = {}
+        self.ws_stem = f'/events'
+
+    async def set_public_token(self):
+        response = await self.client.post('/token/all')
+        token = response.json()['access_token']
+        self.set_token(token)
+
+    def set_token(self, token: str):
         self.headers = {
-            "Authorization": f"Bearer {self.token}",
+            "Authorization": f"Bearer {token}",
         }
+        self.ws_stem = f'/events?token={token}'
 
-        self.ws_stem = f'/events?token={self.token}'
+    async def get(self, *args, **kwargs):
+        return await self.client.get(*args, **kwargs, headers=self.headers)
 
-    def get(self, *args, **kwargs):
-        return self.client.get(*args, **kwargs, headers=self.headers)
+    async def post(self, *args, **kwargs):
+        return await self.client.post(*args, **kwargs, headers=self.headers)
 
-    def post(self, *args, **kwargs):
-        return self.client.post(*args, **kwargs, headers=self.headers)
+    async def __aenter__(self, *args, **kwargs):
+        await self.client.__aenter__(*args, **kwargs)
+        return self
+
+    async def __aexit__(self, *args, **kwargs):
+        await self.client.__aexit__(*args, **kwargs)
 
     def websocket_connect(self):
         raise NotImplementedError
 
 
 class LocalAppClient(AppClient):
-    def __init__(self, client: TestClient, ws_client: AsyncioTestClient):
+    def __init__(self, client: AsyncClient,
+                 ws_client: AsyncioTestClient,
+                 lifespan_manager: LifespanManager):
         super().__init__(client)
         self.ws_client = ws_client
+        self.lifespan = lifespan_manager
 
     def websocket_connect(self):
         return self.ws_client.websocket_connect(self.ws_stem)
 
+    async def __aenter__(self, *args, **kwargs):
+        await self.lifespan.__aenter__(*args, **kwargs)
+        return await super().__aenter__(*args, **kwargs)
+
+    async def __aexit__(self, *args, **kwargs):
+        await super().__aexit__(*args, **kwargs)
+        await self.lifespan.__aexit__(*args, **kwargs)
+
 
 class RemoteAppClient(AppClient):
-    def __init__(self, client: sessions.BaseUrlSession):
-        super().__init__(client)
-
     def websocket_connect(self):
-        ws_base_url = self.client.base_url.replace('http', 'ws')
+        ws_base_url = str(self.client.base_url).replace('http', 'ws')
         ws_url = f'{ws_base_url}{self.ws_stem}'
         return websockets.client.connect(ws_url)
