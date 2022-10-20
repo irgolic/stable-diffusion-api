@@ -336,17 +336,9 @@ def create_app(app_config: AppConfig) -> FastAPI:
     # OpenAPI
     ###
 
-    openapi_schema = get_openapi(
-        title=app.title,
-        version=app.version,
-        openapi_version=app.openapi_version,
-        description=app.description,
-        routes=app.routes,
-        # openapi_prefix=app.openapi_prefix,
-    )
+    openapi_schema = app.openapi()
     with open('openapi.yml', 'w') as f:
         yaml.dump(openapi_schema, f)
-    app.openapi_schema = openapi_schema
 
     ###
     # Create default user
