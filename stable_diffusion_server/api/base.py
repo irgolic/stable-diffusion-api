@@ -35,7 +35,7 @@ class AppConfig(pydantic.BaseModel):
     messaging_repo_class: Type[MessagingRepo]
     user_repo: Type[UserRepo]
 
-    SECRET_KEY: str = os.environ["SECRET_KEY"]
+    SECRET_KEY: str = pydantic.Field(default_factory=lambda: os.environ["SECRET_KEY"])
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 240
 
