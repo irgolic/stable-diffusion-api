@@ -96,6 +96,7 @@ components:
           anyOf:
           - $ref: '#/components/schemas/Txt2ImgParams'
           - $ref: '#/components/schemas/Img2ImgParams'
+          - $ref: '#/components/schemas/InpaintParams'
           title: Parameters Used
       required:
       - blob_id
@@ -202,6 +203,92 @@ components:
       - prompt
       - initial_image
       title: Img2ImgParams
+      type: object
+    InpaintParams:
+      properties:
+        guidance:
+          default: 7.5
+          description: 'Higher guidance encourages generation closely linked to `prompt`,
+            usually at the expense of lower image quality. Try using more steps to
+            improve image quality when using high guidance. Guidance is disabled by
+            setting `guidance` to `1`. `guidance` is defined as `w` of equation 2.
+            of [ImagenPaper](https://arxiv.org/pdf/2205.11487.pdf). See also: [Classifier-Free
+            Diffusion Guidance](https://arxiv.org/abs/2207.12598).'
+          minimum: 1.0
+          title: Guidance
+          type: number
+        initial_image:
+          description: 'The image to use as input for image generation. It must have
+            a width and height divisible by 8. '
+          title: Initial Image
+          type: string
+        mask:
+          description: The mask to use for image generation. It must have the same
+            width and height as the initial image. It will be converted to a black-and-white
+            image, wherein white pixels indicate the area to be inpainted.
+          title: Mask
+          type: string
+        model_id:
+          default: runwayml/stable-diffusion-inpainting
+          description: The model to use for image generation, e.g. 'runwayml/stable-diffusion-inpainting'.
+          title: Model Id
+          type: string
+        model_provider:
+          default: huggingface
+          description: The model provider to look up `model_id`. Currently only 'huggingface'
+            is supported.
+          enum:
+          - huggingface
+          title: Model Provider
+          type: string
+        negative_prompt:
+          description: The prompt to dissuade image generation. Ignored when not using
+            guidance (i.e., if `guidance` is `1`).
+          title: Negative Prompt
+          type: string
+        prompt:
+          description: The prompt to guide image generation.
+          title: Prompt
+          type: string
+        safety_filter:
+          default: true
+          description: Ensure that you abide by the conditions of the Stable Diffusion
+            license and do not expose unfiltered results in services or applications
+            open to the public. For more information, please see https://github.com/huggingface/diffusers/pull/254
+          title: Safety Filter
+          type: boolean
+        scheduler:
+          default: plms
+          description: The scheduler to use for image generation. Currently only 'plms',
+            'ddim', and 'k-lms', are supported.
+          enum:
+          - plms
+          - ddim
+          - k-lms
+          title: Scheduler
+          type: string
+        seed:
+          description: The randomness seed to use for image generation. If not set,
+            a random seed is used.
+          title: Seed
+          type: integer
+        steps:
+          default: 20
+          description: The number of denoising steps. More denoising steps usually
+            lead to a higher quality image at the expense of slower inference.
+          title: Steps
+          type: integer
+        task_type:
+          default: inpaint
+          enum:
+          - inpaint
+          title: Task Type
+          type: string
+      required:
+      - prompt
+      - initial_image
+      - mask
+      title: InpaintParams
       type: object
     PendingEvent:
       properties:
@@ -442,6 +529,7 @@ paths:
               anyOf:
               - $ref: '#/components/schemas/Txt2ImgParams'
               - $ref: '#/components/schemas/Img2ImgParams'
+              - $ref: '#/components/schemas/InpaintParams'
               title: Parameters
         required: true
       responses:

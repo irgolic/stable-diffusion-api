@@ -92,4 +92,24 @@ class Img2ImgParams(Params):
     )
 
 
+class InpaintParams(Params):
+    task_type: Literal["inpaint"] = "inpaint"
+
+    model_id: ModelId = pydantic.Field(
+        default="runwayml/stable-diffusion-inpainting",
+        description="The model to use for image generation, e.g. 'runwayml/stable-diffusion-inpainting'.",
+    )
+
+    initial_image: BlobId = pydantic.Field(
+        description="The image to use as input for image generation. "
+                    "It must have a width and height divisible by 8. "
+    )
+    mask: BlobId = pydantic.Field(
+        description="The mask to use for image generation. "
+                    "It must have the same width and height as the initial image. "
+                    "It will be converted to a black-and-white image, "
+                    "wherein white indicates the area to be inpainted."
+    )
+
+
 ParamsUnion = Union[tuple(Params.__subclasses__())]  # type: ignore

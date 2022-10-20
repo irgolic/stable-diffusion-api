@@ -1,20 +1,21 @@
 import io
 import logging
 import os
-from typing import Mapping, Any
+from typing import Any, Optional
 
 import PIL.Image
 import torch
-from diffusers import StableDiffusionPipeline, DDIMScheduler, LMSDiscreteScheduler, StableDiffusionImg2ImgPipeline
+from diffusers import StableDiffusionPipeline, DDIMScheduler, LMSDiscreteScheduler, StableDiffusionImg2ImgPipeline, \
+    StableDiffusionInpaintPipeline
 
 from stable_diffusion_server.engine.repos.blob_repo import BlobRepo
 from stable_diffusion_server.engine.services.event_service import EventService
-from stable_diffusion_server.models.blob import Blob
+from stable_diffusion_server.models.blob import Blob, BlobId
 from stable_diffusion_server.models.events import FinishedEvent, StartedEvent, CancelledEvent
 from stable_diffusion_server.models.image import GeneratedImage
-from stable_diffusion_server.models.params import Txt2ImgParams, Img2ImgParams
+from stable_diffusion_server.models.params import Txt2ImgParams, Img2ImgParams, InpaintParams
 from stable_diffusion_server.models.task import Task
-from stable_diffusion_server.models.user import User
+from stable_diffusion_server.models.user import User, Username
 
 logger = logging.getLogger(__name__)
 
@@ -27,6 +28,17 @@ class RunnerService:
     ):
         self.blob_repo = blob_repo
         self.event_service = event_service
+
+    def get_img(self, blob_id: BlobId, username: Username, mode: Optional[str] = None):
+        # extract image blob into `init_image` pipe kwarg
+        blob = self.blob_repo.get_blob(blob_id, username)
+        if blob is None:
+            raise RuntimeError(f'Blob not found: {blob_id}')
+        image = PIL.Image.open(io.BytesIO(blob.data))
+        image = image.convert('RGB')  # remove alpha channel
+        if mode is not None:
+            image = image.convert(mode)
+        return image
 
     async def run_task(self, task: Task) -> None:
         logger.info(f'Handle task: {task}')
@@ -102,16 +114,15 @@ class RunnerService:
             )
         elif isinstance(params, Img2ImgParams):
             pipeline = StableDiffusionImg2ImgPipeline
-
-            # extract image blob into `init_image` pipe kwarg
-            blob = self.blob_repo.get_blob(params.initial_image, task.user.username)
-            if blob is None:
-                raise RuntimeError(f'Blob not found: {params.initial_image}')
-            image = PIL.Image.open(io.BytesIO(blob.data))
-
             pipe_kwargs.update(
                 strength=params.strength,
-                init_image=image,
+                init_image=self.get_img(params.initial_image, task.user.username, mode="RGB"),
+            )
+        elif isinstance(params, InpaintParams):
+            pipeline = StableDiffusionInpaintPipeline
+            pipe_kwargs.update(
+                image=self.get_img(params.initial_image, task.user.username, mode="RGB"),
+                mask_image=self.get_img(params.mask, task.user.username, mode="L"),
             )
         else:
             raise NotImplementedError(f'Unknown task type: {params.task_type}')
