@@ -38,6 +38,7 @@ class AppConfig(pydantic.BaseModel):
     SECRET_KEY: str = pydantic.Field(default_factory=lambda: os.environ["SECRET_KEY"])
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 240
+    BASE_URL: str = os.environ.get("BASE_URL", "http://localhost:8000")
 
     PRINT_LINK_WITH_TOKEN: bool = pydantic.Field(default_factory=lambda: os.environ["PRINT_LINK_WITH_TOKEN"] == "1")
     ENABLE_PUBLIC_ACCESS: bool = pydantic.Field(default_factory=lambda: os.environ["ENABLE_PUBLIC_ACCESS"] == "1")
@@ -360,7 +361,7 @@ def create_app(app_config: AppConfig) -> FastAPI:
         token = user_repo.create_token_by_username_and_password(username=username, password=password)
 
         # print link
-        print(f"Try visiting http://localhost:8000/txt2img?"
+        print(f"Try visiting {app_config.BASE_URL}/txt2img?"
               f"prompt=corgi&"
               f"steps=2&"
               f"model_id=CompVis/stable-diffusion-v1-4&"
