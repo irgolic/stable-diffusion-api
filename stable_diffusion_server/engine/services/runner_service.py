@@ -40,18 +40,23 @@ class RunnerService:
             )
         )
 
-        pipeline_kwargs: dict[str, Any] = {}
+        params = task.parameters
+
+        # set model
+        pipeline_kwargs: dict[str, Any] = {
+            'pretrained_model_name_or_path': params.model_id
+        }
 
         # set token
         if "HUGGINGFACE_TOKEN" in os.environ:
             pipeline_kwargs['use_auth_token'] = os.environ["HUGGINGFACE_TOKEN"]
 
         # optionally disable safety filter
-        if not task.parameters.safety_filter:
+        if not params.safety_filter:
             pipeline_kwargs['safety_checker'] = None
 
         # pick scheduler
-        match task.parameters.scheduler:
+        match params.scheduler:
             case "plms":
                 pass  # default scheduler
             case "ddim":
@@ -69,15 +74,54 @@ class RunnerService:
                     beta_schedule="scaled_linear"
                 )
 
-        # handle task
-        params = task.parameters
+        # pick device
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+
+        # construct generator, set seed if params.seed is not None
+        generator = torch.Generator(device)
+        if params.seed is None:
+            params.seed = generator.seed()
+        else:
+            generator.manual_seed(params.seed)
+
+        # extract common pipe kwargs
+        pipe_kwargs = dict(
+            pretrained_model_name_or_path=params.model_id,
+            prompt=params.prompt,
+            num_inference_steps=params.steps,
+            guidance_scale=params.guidance,
+            negative_prompt=params.negative_prompt,
+        )
+
+        # prepare pipeline
+        if isinstance(params, Txt2ImgParams):
+            pipeline = StableDiffusionPipeline
+            pipe_kwargs.update(
+                height=params.height,
+                width=params.width,
+            )
+        elif isinstance(params, Img2ImgParams):
+            pipeline = StableDiffusionImg2ImgPipeline
+
+            # extract image blob into `init_image` pipe kwarg
+            blob = self.blob_repo.get_blob(params.initial_image, task.user.username)
+            if blob is None:
+                raise RuntimeError(f'Blob not found: {params.initial_image}')
+            image = PIL.Image.open(io.BytesIO(blob.data))
+
+            pipe_kwargs.update(
+                strength=params.strength,
+                init_image=image,
+            )
+        else:
+            raise NotImplementedError(f'Unknown task type: {params.task_type}')
+
+        # run pipeline
         try:
-            if isinstance(params, Txt2ImgParams):
-                img = self._handle_txt2img_task(params, pipeline_kwargs)
-            elif isinstance(params, Img2ImgParams):
-                img = self._handle_img2img_task(params, pipeline_kwargs, task.user)
-            else:
-                raise NotImplementedError(f'Unknown task type: {params.task_type}')
+            pipe = pipeline.from_pretrained(**pipeline_kwargs)
+            pipe.to(device)
+            output = pipe(**pipe_kwargs)
+            img = output.images[0]
         except Exception as e:
             logger.error(f'Error while handling task: {task}', exc_info=True)
             self.event_service.send_event(
@@ -95,6 +139,7 @@ class RunnerService:
         img.save(img_byte_arr, format='PNG')
         img_bytes = img_byte_arr.getvalue()
 
+        # save blob
         blob = Blob(
             data=img_bytes,
             username=task.user.username,
@@ -115,54 +160,3 @@ class RunnerService:
                 image=generated_image,
             )
         )
-
-    def _handle_txt2img_task(self, params: Txt2ImgParams, pipeline_kwargs: Mapping[str, Any]) -> PIL.Image.Image:
-        pipe = StableDiffusionPipeline.from_pretrained(
-            params.model_id,
-            **pipeline_kwargs
-        )
-
-        if torch.cuda.is_available():
-            pipe = pipe.to("cuda")
-        else:
-            pipe = pipe.to("cpu")
-
-        output = pipe(
-            prompt=params.prompt,
-            height=params.height,
-            width=params.width,
-            num_inference_steps=params.steps,
-            guidance_scale=params.guidance,
-            negative_prompt=params.negative_prompt,
-        )
-        return output.images[0]
-
-    def _handle_img2img_task(self,
-                             params: Img2ImgParams,
-                             pipeline_kwargs: Mapping[str, Any],
-                             user: User) -> PIL.Image.Image:
-        # pull image
-        blob = self.blob_repo.get_blob(params.initial_image, user.username)
-        if blob is None:
-            raise RuntimeError(f'Blob not found: {params.initial_image}')
-        image = PIL.Image.open(io.BytesIO(blob.data))
-
-        pipe = StableDiffusionImg2ImgPipeline.from_pretrained(
-            params.model_id,
-            **pipeline_kwargs,
-        )
-
-        if torch.cuda.is_available():
-            pipe = pipe.to("cuda")
-        else:
-            pipe = pipe.to("cpu")
-
-        output = pipe(
-            prompt=params.prompt,
-            init_image=image,
-            strength=params.strength,
-            num_inference_steps=params.steps,
-            guidance_scale=params.guidance,
-            negative_prompt=params.negative_prompt,
-        )
-        return output.images[0]

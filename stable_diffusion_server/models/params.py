@@ -54,12 +54,11 @@ class Params(pydantic.BaseModel):
                     "do not expose unfiltered results in services or applications open to the public. "
                     "For more information, please see https://github.com/huggingface/diffusers/pull/254",
     )
-    # TODO implement seed
-    # seed: Optional[int] = pydantic.Field(
-    #     default=None,
-    #     description="The randomness seed to use for image generation. "
-    #                 "If not set, a random seed is used."
-    # )
+    seed: Optional[int] = pydantic.Field(
+        default=None,
+        description="The randomness seed to use for image generation. "
+                    "If not set, a random seed is used."
+    )
 
 
 class Txt2ImgParams(Params):
