@@ -39,7 +39,7 @@ https://editor.swagger.io/?url=https://raw.githubusercontent.com/irgolic/stable-
 The token is passed either among query parameters (`/txt2img?token=...`), or via the `Authorization` header 
 as a `Bearer` token [(OAuth2 Bearer Authentication)](https://swagger.io/docs/specification/authentication/bearer-authentication/).
 
-To disable authentication, and allow generation of public tokens at `POST /token/all`, 
+To disable authentication and allow generation of public tokens at `POST /token/all`,
 set environment variable `ENABLE_PUBLIC_ACCESS=1`.
 
 To allow users to sign up at `POST /user`, 
