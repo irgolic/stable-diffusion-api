@@ -39,9 +39,9 @@ class AppConfig(pydantic.BaseModel):
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 240
 
-    PRINT_LINK_WITH_TOKEN: bool = os.environ["PRINT_LINK_WITH_TOKEN"] == "1"
-    ENABLE_PUBLIC_ACCESS: bool = os.environ["ENABLE_PUBLIC_ACCESS"] == "1"
-    ENABLE_SIGNUP: bool = os.environ["ENABLE_SIGNUP"] == "1"
+    PRINT_LINK_WITH_TOKEN: bool = pydantic.Field(default_factory=lambda: os.environ["PRINT_LINK_WITH_TOKEN"] == "1")
+    ENABLE_PUBLIC_ACCESS: bool = pydantic.Field(default_factory=lambda: os.environ["ENABLE_PUBLIC_ACCESS"] == "1")
+    ENABLE_SIGNUP: bool = pydantic.Field(default_factory=lambda: os.environ["ENABLE_SIGNUP"] == "1")
 
 
 def create_app(app_config: AppConfig) -> FastAPI:
