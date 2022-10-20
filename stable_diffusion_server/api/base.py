@@ -1,9 +1,11 @@
 import asyncio
 import os
 import datetime
+import uuid
 from collections import defaultdict
 from typing import Type, Union, Optional, AsyncGenerator
 
+import bcrypt
 import pydantic
 import yaml
 from fastapi.openapi.utils import get_openapi
@@ -33,12 +35,13 @@ class AppConfig(pydantic.BaseModel):
     messaging_repo_class: Type[MessagingRepo]
     user_repo: Type[UserRepo]
 
-    SECRET_KEY = os.environ["SECRET_KEY"]
-    ALGORITHM = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES = 240
+    SECRET_KEY: str = os.environ["SECRET_KEY"]
+    ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 240
 
-    ENABLE_PUBLIC_ACCESS: bool = bool(os.getenv('ENABLE_PUBLIC_ACCESS', False))
-    ENABLE_SIGNUP: bool = bool(os.getenv('ENABLE_SIGNUP', False))
+    PRINT_LINK_WITH_TOKEN: bool = pydantic.Field(default_factory=lambda: os.environ["PRINT_LINK_WITH_TOKEN"] == "1")
+    ENABLE_PUBLIC_ACCESS: bool = pydantic.Field(default_factory=lambda: os.environ["ENABLE_PUBLIC_ACCESS"] == "1")
+    ENABLE_SIGNUP: bool = pydantic.Field(default_factory=lambda: os.environ["ENABLE_SIGNUP"] == "1")
 
 
 def create_app(app_config: AppConfig) -> FastAPI:
@@ -67,8 +70,13 @@ def create_app(app_config: AppConfig) -> FastAPI:
     # Optional bearer token handler
     optional_oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token", auto_error=False)
 
-    async def get_user(token: Optional[str] = Depends(optional_oauth2_scheme),
-                       user_repo: UserRepo = Depends(construct_user_repo)) -> User:
+    async def get_user(
+        header_token: Optional[str] = Depends(optional_oauth2_scheme),
+        query_token: Optional[str] = Query(default=None, alias="token"),
+        user_repo: UserRepo = Depends(construct_user_repo)
+    ) -> User:
+        token = header_token or query_token
+
         if token is None:
             if not app_config.ENABLE_PUBLIC_ACCESS:
                 raise credentials_exception
@@ -299,24 +307,19 @@ def create_app(app_config: AppConfig) -> FastAPI:
     # Websocket
     ###
 
-    async def get_token(
-        websocket: websockets.WebSocket,
-        token: Union[str, None] = Query(default=None),
-    ) -> str:
-        if token is None:
-            await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
-            raise HTTPException(status_code=status.WS_1008_POLICY_VIOLATION, detail="No session or token")
-        return token
-
     async def get_ws_user(
         websocket: websockets.WebSocket,
-        token: str = Depends(get_token),
+        token: Union[str, None] = Query(default=None),
         user_repo: UserRepo = Depends(construct_user_repo),
     ) -> User:
+        if token is None:
+            await websocket.close(code=1008, reason="Missing token")
+            raise HTTPException(status_code=401, detail="Unauthorized")
+
         try:
             return user_repo.must_get_user_by_token(token)
         except AuthenticationError:
-            await websocket.close(code=status.HTTP_401_UNAUTHORIZED)
+            await websocket.close(code=1008, reason="Invalid token")
             raise HTTPException(status_code=401, detail="User not found")
 
     @app.websocket('/events')
@@ -344,5 +347,34 @@ def create_app(app_config: AppConfig) -> FastAPI:
     with open('openapi.yml', 'w') as f:
         yaml.dump(openapi_schema, f)
     app.openapi_schema = openapi_schema
+
+    ###
+    # Create default user
+    ###
+
+    def print_link_with_token() -> None:
+        # construct token repo
+        user_repo = app_config.user_repo(
+            secret_key=app_config.SECRET_KEY,
+            algorithm=app_config.ALGORITHM,
+            access_token_expires=datetime.timedelta(minutes=app_config.ACCESS_TOKEN_EXPIRE_MINUTES),
+            allow_public_token=app_config.ENABLE_PUBLIC_ACCESS,
+        )
+
+        # create default user
+        username = "default_" + str(uuid.uuid4())
+        password = bcrypt.hashpw(str(uuid.uuid4()).encode(), bcrypt.gensalt()).decode()
+        user_repo.create_user(user=UserBase(username=username), password=password)
+        token = user_repo.create_token_by_username_and_password(username=username, password=password)
+
+        # print link
+        print(f"Try visiting http://localhost:8000/txt2img?"
+              f"prompt=corgi&"
+              f"steps=2&"
+              f"model_id=CompVis/stable-diffusion-v1-4&"
+              f"token={token.access_token}")
+
+    if app_config.PRINT_LINK_WITH_TOKEN:
+        print_link_with_token()
 
     return app
