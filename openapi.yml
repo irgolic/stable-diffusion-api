@@ -353,10 +353,10 @@ paths:
       operationId: post_blob_blob_post
       parameters:
       - in: query
-        name: query_token
+        name: token
         required: false
         schema:
-          title: Query Token
+          title: Token
           type: string
       requestBody:
         content:
@@ -392,10 +392,10 @@ paths:
           title: Blob Id
           type: string
       - in: query
-        name: query_token
+        name: token
         required: false
         schema:
-          title: Query Token
+          title: Token
           type: string
       responses:
         '200':
@@ -420,10 +420,10 @@ paths:
       operationId: create_task_task_post
       parameters:
       - in: query
-        name: query_token
+        name: token
         required: false
         schema:
-          title: Query Token
+          title: Token
           type: string
       requestBody:
         content:
@@ -462,10 +462,10 @@ paths:
           title: Task Id
           type: string
       - in: query
-        name: query_token
+        name: token
         required: false
         schema:
-          title: Query Token
+          title: Token
           type: string
       responses:
         '200':
@@ -611,10 +611,10 @@ paths:
           title: Height
           type: integer
       - in: query
-        name: query_token
+        name: token
         required: false
         schema:
-          title: Query Token
+          title: Token
           type: string
       responses:
         '200':
