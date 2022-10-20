@@ -40,19 +40,18 @@ The token is passed either among query parameters (`/txt2img?token=...`), or via
 as a `Bearer` token [(OAuth2 Bearer Authentication)](https://swagger.io/docs/specification/authentication/bearer-authentication/).
 
 To disable authentication, and allow generation of public tokens at `POST /token/all`, 
-set environment variable `ENABLE_PUBLIC_ACCESS`.
+set environment variable `ENABLE_PUBLIC_ACCESS=1`.
 
 To allow users to sign up at `POST /user`, 
-set environment variable `ENABLE_SIGNUP`. 
+set environment variable `ENABLE_SIGNUP=1`. 
 Registered users can generate their own tokens at `POST /token/{username}`.
 
 ### Synchronous Interface
 
 For convenience, the server provides a synchronous endpoint for Txt2Img.
 
-Following `.env.example`, the server prints an example URL (i.e., `/txt2img?prompt=corgi&steps=5?token=...`) 
-that you can visit in the browser.
-To disable this, unset environment variable `PRINT_LINK_WITH_TOKEN`.
+To print a browser-accessible URL upon startup (i.e., `http://localhost:8000/txt2img?prompt=corgi&steps=5?token=...`), 
+set environment variable `PRINT_LINK_WITH_TOKEN=1` (set by default in `.env.example`).
 
 The server will wait for the model to download and generate an image before returning the request.
 It is preferable to use the asynchronous endpoints for production use.
@@ -128,6 +127,7 @@ See `.env.example` for a list of example environment variable values.
 Copy `.env.example` to `.env` and edit as needed (make sure to regenerate the secrets).
 
 - `SECRET_KEY`: The secret key used to sign the JWT tokens.
+- `PRINT_LINK_WITH_TOKEN`: Whether to print a link with the token to the console on startup.
 - `ENABLE_PUBLIC_ACCESS`: Whether to enable public token generation (anything except empty string enables it).
 - `ENABLE_SIGNUP`: Whether to enable user signup (anything except empty string enables it).
 - `REDIS_PORT`: The port of the Redis server.
