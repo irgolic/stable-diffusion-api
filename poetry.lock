@@ -129,7 +129,7 @@ dev = ["PyTest", "PyTest (<5)", "PyTest-Cov", "PyTest-Cov (<2.6)", "bump2version
 
 [[package]]
 name = "diffusers"
-version = "0.5.1"
+version = "0.6.0"
 description = "Diffusers"
 category = "main"
 optional = false
@@ -813,7 +813,7 @@ testing = ["flake8 (<5)", "func-timeout", "jaraco.functools", "jaraco.itertools"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "d3965f9ec19b5dfe976fb34016042cdfa89cfea16e7d3f21d457b4690a2a8dc8"
+content-hash = "cca112c73560af205b438dca6cc68ff2cf48eb78c20bd9f8b40cfbdc28760a44"
 
 [metadata.files]
 aioredis = [
@@ -880,8 +880,8 @@ deprecated = [
     {file = "Deprecated-1.2.13.tar.gz", hash = "sha256:43ac5335da90c31c24ba028af536a91d41d53f9e6901ddb021bcc572ce44e38d"},
 ]
 diffusers = [
-    {file = "diffusers-0.5.1-py3-none-any.whl", hash = "sha256:5f74d000e96bafcaaaa647a267fcdc8c8cd519f88668b51c5b978401e57bcdf1"},
-    {file = "diffusers-0.5.1.tar.gz", hash = "sha256:0053730e0181013579d592c9380240d43e8e0bc2309c405200cc76f2e8548d19"},
+    {file = "diffusers-0.6.0-py3-none-any.whl", hash = "sha256:576c0d7fdf6f9eaa33fdb91d9ff49474dbb634db31333b4eefe005f8a50e9121"},
+    {file = "diffusers-0.6.0.tar.gz", hash = "sha256:946a6561e207d544d7c635843bd0e34627d6f6a9bdfab24864ef672e92664b16"},
 ]
 ecdsa = [
     {file = "ecdsa-0.18.0-py2.py3-none-any.whl", hash = "sha256:80600258e7ed2f16b9aa1d7c295bd70194109ad5a30fdee0eaeefef1d4c559dd"},
