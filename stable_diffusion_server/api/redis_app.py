@@ -7,8 +7,8 @@ from stable_diffusion_server.engine.repos.user_repo import RedisUserRepo
 app_config = AppConfig(
     blob_repo_class=RedisBlobRepo,
     messaging_repo_class=RedisMessagingRepo,
-    user_repo=RedisUserRepo,
-    key_value_repo=RedisKeyValueRepo,
+    user_repo_class=RedisUserRepo,
+    key_value_repo_class=RedisKeyValueRepo,
 )
 
 app = create_app(app_config)
