@@ -16,6 +16,7 @@ Supported parameters:
 - `steps`: number of steps, default `20`
 - `guidance`: relatedness to `prompt`, default `7.5`
 - `scheduler`: either `plms`, `ddim`, or `k-lms`
+- `seed`: randomness seed for reproducibility, default `None`
 - `safety_filter`: enable safety checker, default `true`
 
 Txt2Img also supports:
@@ -84,8 +85,8 @@ A FinishedEvent contains an `image` field including its `blob_id` and `parameter
 Help wanted.
 
 - [x] CUDA and CPU support
+- [x] Seed parameter
 - [ ] Inpainting
-- [ ] Seed parameter
 - [ ] Cancel task endpoint
 - [ ] GFPGAN postprocessing (fix faces)
 - [ ] Speed up image generation

@@ -168,6 +168,11 @@ components:
           - k-lms
           title: Scheduler
           type: string
+        seed:
+          description: The randomness seed to use for image generation. If not set,
+            a random seed is used.
+          title: Seed
+          type: integer
         steps:
           default: 20
           description: The number of denoising steps. More denoising steps usually
@@ -285,6 +290,11 @@ components:
           - k-lms
           title: Scheduler
           type: string
+        seed:
+          description: The randomness seed to use for image generation. If not set,
+            a random seed is used.
+          title: Seed
+          type: integer
         steps:
           default: 20
           description: The number of denoising steps. More denoising steps usually
@@ -596,6 +606,12 @@ paths:
           default: true
           title: Safety Filter
           type: boolean
+      - in: query
+        name: seed
+        required: false
+        schema:
+          title: Seed
+          type: integer
       - in: query
         name: width
         required: false

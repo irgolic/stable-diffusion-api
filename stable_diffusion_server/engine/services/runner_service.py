@@ -77,6 +77,13 @@ class RunnerService:
         # pick device
         device = "cuda" if torch.cuda.is_available() else "cpu"
 
+        # construct generator, set seed if params.seed is not None
+        generator = torch.Generator(device)
+        if params.seed is None:
+            params.seed = generator.seed()
+        else:
+            generator.manual_seed(params.seed)
+
         # extract common pipe kwargs
         pipe_kwargs = dict(
             pretrained_model_name_or_path=params.model_id,

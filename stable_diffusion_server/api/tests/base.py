@@ -54,6 +54,7 @@ class BaseTestApp:
             'width': 512,
             'height': 512,
             "safety_filter": False,
+            'seed': mock.ANY,
         }
 
     @pytest.fixture
@@ -76,6 +77,7 @@ class BaseTestApp:
             'scheduler': 'plms',
             "safety_filter": False,
             "strength": 0.8,
+            'seed': mock.ANY,
             'initial_image': mock.ANY,
         }
 
@@ -154,6 +156,9 @@ class BaseTestApp:
         poll_event = await self.assert_poll_status(client, task_id, expected_event)
         assert poll_event == ws_event
 
+        # assert seed got set after randomization
+        assert poll_event['image']['parameters_used']['seed'] is not None
+
         generated_image_blob_id = ws_event['image']['blob_id']
 
         # download the blob
@@ -164,10 +169,13 @@ class BaseTestApp:
         upload_response = await self.post_blob(client, img_bytes)
         uploaded_blob_id = upload_response.json()
 
+        manual_seed = 42
+
         # run the generated image through img2img
         task_id = await self.post_task(client,
             dummy_img2img_params | {
                 "initial_image": uploaded_blob_id,
+                'seed': manual_seed,
             }
         )
 
@@ -191,6 +199,7 @@ class BaseTestApp:
                 'blob_id': mock.ANY,
                 'parameters_used': resolved_dummy_img2img_params | {
                     'initial_image': uploaded_blob_id,
+                    'seed': manual_seed,
                 },
             }
         }
