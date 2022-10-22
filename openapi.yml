@@ -449,13 +449,6 @@ paths:
   /blob:
     post:
       operationId: post_blob_blob_post
-      parameters:
-      - in: query
-        name: token
-        required: false
-        schema:
-          title: Token
-          type: string
       requestBody:
         content:
           multipart/form-data:
@@ -488,12 +481,6 @@ paths:
         required: true
         schema:
           title: Blob Id
-          type: string
-      - in: query
-        name: token
-        required: false
-        schema:
-          title: Token
           type: string
       responses:
         '200':
@@ -667,12 +654,6 @@ paths:
           minimum: 0.0
           title: Strength
           type: number
-      - in: query
-        name: token
-        required: false
-        schema:
-          title: Token
-          type: string
       responses:
         '200':
           content:
@@ -828,12 +809,6 @@ paths:
             image, wherein white indicates the area to be inpainted.
           title: Mask
           type: string
-      - in: query
-        name: token
-        required: false
-        schema:
-          title: Token
-          type: string
       responses:
         '200':
           content:
@@ -853,13 +828,6 @@ paths:
   /task:
     post:
       operationId: create_task_task_post
-      parameters:
-      - in: query
-        name: token
-        required: false
-        schema:
-          title: Token
-          type: string
       requestBody:
         content:
           application/json:
@@ -896,12 +864,6 @@ paths:
         required: true
         schema:
           title: Task Id
-          type: string
-      - in: query
-        name: token
-        required: false
-        schema:
-          title: Token
           type: string
       responses:
         '200':
@@ -1097,12 +1059,6 @@ paths:
           description: The pixel height of the generated image.
           title: Height
           type: integer
-      - in: query
-        name: token
-        required: false
-        schema:
-          title: Token
-          type: string
       responses:
         '200':
           content:

@@ -75,7 +75,7 @@ def create_app(app_config: AppConfig) -> FastAPI:
 
     async def get_user(
         header_token: Optional[str] = Depends(optional_oauth2_scheme),
-        query_token: Optional[str] = Query(default=None, alias="token"),
+        query_token: Optional[str] = Query(default=None, alias="token", include_in_schema=False),
         user_repo: UserRepo = Depends(construct_user_repo)
     ) -> User:
         token = header_token or query_token
