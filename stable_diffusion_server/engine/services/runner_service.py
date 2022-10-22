@@ -4,6 +4,7 @@ import os
 from typing import Any, Optional
 
 import PIL.Image
+import numpy as np
 import torch
 from diffusers import StableDiffusionPipeline, DDIMScheduler, LMSDiscreteScheduler, StableDiffusionImg2ImgPipeline, \
     StableDiffusionInpaintPipeline
@@ -29,15 +30,28 @@ class RunnerService:
         self.blob_repo = blob_repo
         self.event_service = event_service
 
-    def get_img(self, blob_id: BlobId, username: Username, mode: Optional[str] = None):
+    def get_img(self, blob_id: BlobId, username: Username, is_mask: bool = False):
         # extract image blob into `init_image` pipe kwarg
         blob = self.blob_repo.get_blob(blob_id, username)
         if blob is None:
             raise RuntimeError(f'Blob not found: {blob_id}')
         image = PIL.Image.open(io.BytesIO(blob.data))
         image = image.convert('RGB')  # remove alpha channel
-        if mode is not None:
-            image = image.convert(mode)
+        if is_mask:
+            # adapted from diffusers.pipelines.stable_diffusion.pipeline_stable_diffusion_inpaint_legacy.preprocess_mask
+            # instead of shrinking it down by 8 times, resize it to 64 x 64 (latent space size)
+            mask = image.convert('L')
+            w, h = mask.size
+            w, h = map(lambda x: x - x % 32, (w, h))  # resize to integer multiple of 32
+            mask = mask.resize((64, 64), resample=PIL.Image.NEAREST)
+            mask = np.array(mask).astype(np.float32) / 255.0
+            mask = np.tile(mask, (4, 1, 1))
+            mask = mask[None].transpose(0, 1, 2, 3)  # what does this step do?
+            mask = 1 - mask  # repaint white, keep black
+            mask = torch.from_numpy(mask)
+            return mask
+        else:
+            image = image.convert('RGB')
         return image
 
     async def run_task(self, task: Task) -> None:
@@ -116,13 +130,13 @@ class RunnerService:
             pipeline = StableDiffusionImg2ImgPipeline
             pipe_kwargs.update(
                 strength=params.strength,
-                init_image=self.get_img(params.initial_image, task.user.username, mode="RGB"),
+                init_image=self.get_img(params.initial_image, task.user.username),
             )
         elif isinstance(params, InpaintParams):
             pipeline = StableDiffusionInpaintPipeline
             pipe_kwargs.update(
-                image=self.get_img(params.initial_image, task.user.username, mode="RGB"),
-                mask_image=self.get_img(params.mask, task.user.username, mode="L"),
+                init_image=self.get_img(params.initial_image, task.user.username),
+                mask_image=self.get_img(params.mask, task.user.username, is_mask=True),
             )
         else:
             raise NotImplementedError(f'Unknown task type: {params.task_type}')

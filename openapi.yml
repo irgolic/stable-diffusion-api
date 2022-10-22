@@ -225,7 +225,7 @@ components:
         mask:
           description: The mask to use for image generation. It must have the same
             width and height as the initial image. It will be converted to a black-and-white
-            image, wherein white pixels indicate the area to be inpainted.
+            image, wherein white indicates the area to be inpainted.
           title: Mask
           type: string
         model_id:
