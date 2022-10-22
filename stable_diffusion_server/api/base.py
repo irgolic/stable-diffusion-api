@@ -75,7 +75,7 @@ def create_app(app_config: AppConfig) -> FastAPI:
 
     async def get_user(
         header_token: Optional[str] = Depends(optional_oauth2_scheme),
-        query_token: Optional[str] = Query(default=None, alias="token"),
+        query_token: Optional[str] = Query(default=None, alias="token", include_in_schema=False),
         user_repo: UserRepo = Depends(construct_user_repo)
     ) -> User:
         token = header_token or query_token
@@ -278,11 +278,15 @@ def create_app(app_config: AppConfig) -> FastAPI:
     ###
 
     for param_type in typing.get_args(ParamsUnion):
-        @app.get(f'/{param_type._endpoint_stem}', responses={
-            200: {
-                "content": {"image/png": {}}
+        @app.get(
+            f'/{param_type._endpoint_stem}',
+                responses={
+                200: {
+                    "content": {"image/png": {}}
+                },
             },
-        })
+            summary=param_type._endpoint_stem,
+        )
         async def get_endpoint(
             parameters: param_type = QueryDepends(param_type),  # type: ignore
             user: User = Depends(get_user),
