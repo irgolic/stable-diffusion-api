@@ -669,7 +669,7 @@ paths:
           description: Validation Error
       security:
       - OAuth2PasswordBearer: []
-      summary: Get Endpoint
+      summary: img2img
   /inpaint:
     get:
       operationId: get_endpoint_inpaint_get
@@ -824,7 +824,7 @@ paths:
           description: Validation Error
       security:
       - OAuth2PasswordBearer: []
-      summary: Get Endpoint
+      summary: inpaint
   /task:
     post:
       operationId: create_task_task_post
@@ -1074,7 +1074,7 @@ paths:
           description: Validation Error
       security:
       - OAuth2PasswordBearer: []
-      summary: Get Endpoint
+      summary: txt2img
   /user/{username}:
     post:
       operationId: signup_user__username__post
