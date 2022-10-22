@@ -3,7 +3,7 @@
 [![OpenApi](https://img.shields.io/badge/OpenApi-3.0.2-orange)](https://editor.swagger.io/?url=https://raw.githubusercontent.com/irgolic/stable-diffusion-server/master/openapi.yml)
 [![Google Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/irgolic/stable-diffusion-server/blob/master/colab_runner.ipynb)
 
-Simple backend to serve Txt2Img and Img2Img with any model published on [Hugging Face](https://huggingface.co/models).
+Simple backend to serve Txt2Img, Img2Img and Inpainting with any model published on [Hugging Face](https://huggingface.co/models).
 The aim is to provide a lightweight, easily extensible backend for image generation.
 
 ## Features
@@ -27,6 +27,10 @@ Img2Img also supports:
 - `initial_image`: `blob_id` of image to be transformed **(required)**
 - `strength`: how much to change the image, default `0.8`
 
+Inpainting also supports:
+- `initial_image`: `blob_id` of image to be transformed **(required)**
+- `mask`: `blob_id` of mask image **(required)**
+
 Img2Img can reference a previously generated image's `blob_id`. 
 Alternatively, `POST /blob` to upload a new image, and get a `blob_id`.
 
@@ -49,7 +53,7 @@ Registered users can generate their own tokens at `POST /token/{username}`.
 
 ### Synchronous Interface
 
-For convenience, the server provides a synchronous endpoint for Txt2Img.
+For convenience, the server provides synchronous endpoints at `GET /txt2img`, `GET /img2img`, and `GET /inpaint`.
 
 To print a browser-accessible URL upon startup (i.e., `http://localhost:8000/txt2img?prompt=corgi&steps=5?token=...`), 
 set environment variable `PRINT_LINK_WITH_TOKEN=1` (set by default in `.env.example`).
@@ -61,7 +65,7 @@ It is preferable to use the asynchronous endpoints for production use.
 
 #### Invocation
 
-`POST /task` with either `Txt2ImgParams` or `Img2ImgParams` to start a task, and get a `task_id`. 
+`POST /task` with either `Txt2ImgParams`, `Img2ImgParams` or `InpaintParams` to start a task, and get a `task_id`. 
 The model will be downloaded and cached, and the task will be queued for execution.
 
 #### Job Status
@@ -91,7 +95,7 @@ Help wanted.
 - [ ] GFPGAN postprocessing (fix faces)
 - [ ] Speed up image generation
 - [ ] Progress update events (model download, image generation every n steps)
-- [ ] Custom tokenizers, supporting `((emphasis))` and `[alternating,prompts,0.4]`
+- [ ] Custom tokenizers, supporting `(emphasis:1.3)` and `[alternating,prompts,0.4]`
 - [ ] More model providers
 - [ ] Other GPU support – testers needed!
 

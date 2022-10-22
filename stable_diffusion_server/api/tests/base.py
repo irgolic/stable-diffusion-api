@@ -46,7 +46,6 @@ class BaseTestApp:
             'guidance': 7.5,
             'scheduler': 'plms',
             'seed': mock.ANY,
-            'extra_kwargs': {},
         }
 
     @pytest.fixture

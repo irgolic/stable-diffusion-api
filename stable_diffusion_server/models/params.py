@@ -7,6 +7,9 @@ from stable_diffusion_server.models.blob import BlobId
 
 
 class Params(pydantic.BaseModel):
+    # private class attribute
+    _endpoint_stem: typing.ClassVar[str]
+
     class Config:
         extra = pydantic.Extra.forbid
 
@@ -52,7 +55,7 @@ class Params(pydantic.BaseModel):
     )
     guidance: float = pydantic.Field(
         default=7.5,
-        ge=1.0,
+        minimum=1.0,
         description="Higher guidance encourages generation closely linked to `prompt`, "
                     "usually at the expense of lower image quality. "
                     "Try using more steps to improve image quality when using high guidance. "
@@ -77,13 +80,11 @@ class Params(pydantic.BaseModel):
         description="The randomness seed to use for image generation. "
                     "If not set, a random seed is used."
     )
-    extra_kwargs: dict[str, typing.Any] = pydantic.Field(
-        default={},
-        description="Extra keyword arguments to pass to the pipeline."
-    )
 
 
 class Txt2ImgParams(Params):
+    _endpoint_stem = 'txt2img'
+
     pipeline: Literal["stable_diffusion_mega"] = "stable_diffusion_mega"
     pipeline_method: Literal["text2img"] = "text2img"
 
@@ -96,6 +97,8 @@ class Txt2ImgParams(Params):
 
 
 class Img2ImgParams(Params):
+    _endpoint_stem = 'img2img'
+
     pipeline: Literal["stable_diffusion_mega"] = "stable_diffusion_mega"
     pipeline_method: Literal["img2img"] = "img2img"
 
@@ -105,8 +108,8 @@ class Img2ImgParams(Params):
     )
     strength: float = pydantic.Field(
         default=0.8,
-        ge=0.0,
-        le=1.0,
+        minimum=0.0,
+        maximum=1.0,
         description="Conceptually, indicates how much to transform the image. "
                     "The image will be used as a starting point, adding more noise to it the larger the `strength`. "
                     "The number of denoising steps depends on the amount of noise initially added. "
@@ -117,6 +120,8 @@ class Img2ImgParams(Params):
 
 
 class InpaintParams(Params):
+    _endpoint_stem = 'inpaint'
+
     pipeline: Literal["stable_diffusion_mega"] = "stable_diffusion_mega"
     pipeline_method: Literal["inpaint"] = "inpaint"
 
