@@ -115,11 +115,6 @@ components:
     Img2ImgParams:
       additionalProperties: false
       properties:
-        extra_kwargs:
-          default: {}
-          description: Extra keyword arguments to pass to the pipeline.
-          title: Extra Kwargs
-          type: object
         guidance:
           default: 7.5
           description: 'Higher guidance encourages generation closely linked to `prompt`,
@@ -213,11 +208,6 @@ components:
     InpaintParams:
       additionalProperties: false
       properties:
-        extra_kwargs:
-          default: {}
-          description: Extra keyword arguments to pass to the pipeline.
-          title: Extra Kwargs
-          type: object
         guidance:
           default: 7.5
           description: 'Higher guidance encourages generation closely linked to `prompt`,
@@ -333,11 +323,6 @@ components:
     Txt2ImgParams:
       additionalProperties: false
       properties:
-        extra_kwargs:
-          default: {}
-          description: Extra keyword arguments to pass to the pipeline.
-          title: Extra Kwargs
-          type: object
         guidance:
           default: 7.5
           description: 'Higher guidance encourages generation closely linked to `prompt`,
@@ -629,13 +614,6 @@ paths:
         schema:
           title: Token
           type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              default: {}
-              title: Extra Kwargs
-              type: object
       responses:
         '200':
           content:
@@ -750,13 +728,6 @@ paths:
         schema:
           title: Token
           type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              default: {}
-              title: Extra Kwargs
-              type: object
       responses:
         '200':
           content:
@@ -981,13 +952,6 @@ paths:
         schema:
           title: Token
           type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              default: {}
-              title: Extra Kwargs
-              type: object
       responses:
         '200':
           content:

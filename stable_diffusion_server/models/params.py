@@ -80,10 +80,6 @@ class Params(pydantic.BaseModel):
         description="The randomness seed to use for image generation. "
                     "If not set, a random seed is used."
     )
-    extra_kwargs: dict[str, typing.Any] = pydantic.Field(
-        default={},
-        description="Extra keyword arguments to pass to the pipeline."
-    )
 
 
 class Txt2ImgParams(Params):
