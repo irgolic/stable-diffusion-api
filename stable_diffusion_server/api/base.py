@@ -275,34 +275,34 @@ def create_app(app_config: AppConfig) -> FastAPI:
     # Synchronous API (convenience wrappers for the asynchronous API)
     ###
 
-    @app.get("/txt2img", responses={
-        200: {
-            "content": {
-                "image/png": {},
+    for param_type in ParamsUnion.__args__:
+        @app.get(f'/{param_type._endpoint_stem}', responses={
+            200: {
+                "content": {"image/png": {}}
             },
-        },
-    })
-    async def txt2img(
-        parameters: Txt2ImgParams = Depends(),
-        user: User = Depends(get_user),
-        task_service: TaskService = Depends(construct_task_service),
-        blob_repo: BlobRepo = Depends(construct_blob_repo),
-    ) -> Response:
-        task = Task(
-            parameters=parameters,
-            user=user,
-        )
-        task_service.push_task(task)
-        async for event in subscribe_to_task(task.task_id):
-            if isinstance(event, CancelledEvent):
-                raise HTTPException(status_code=500, detail=event.reason)
-            if isinstance(event, FinishedEvent):
-                blob_id = event.image.blob_id
-                blob = blob_repo.get_blob(blob_id, username=user.username)
-                if blob is None:
-                    raise RuntimeError("Blob not found")
-                return Response(content=blob.data, media_type="image/png")
-        raise RuntimeError("Event stream ended unexpectedly")
+        })
+        async def get_endpoint(
+            parameters: param_type = Depends(),
+            user: User = Depends(get_user),
+            task_service: TaskService = Depends(construct_task_service),
+            blob_repo: BlobRepo = Depends(construct_blob_repo),
+        ) -> Response:
+            task = Task(
+                parameters=parameters,
+                user=user,
+            )
+            task_service.push_task(task)
+            async for event in subscribe_to_task(task.task_id):
+                if isinstance(event, CancelledEvent):
+                    raise HTTPException(status_code=500, detail=event.reason)
+                if isinstance(event, FinishedEvent):
+                    blob_id = event.image.blob_id
+                    blob = blob_repo.get_blob(blob_id, username=user.username)
+                    if blob is None:
+                        raise RuntimeError("Blob not found")
+                    return Response(content=blob.data, media_type="image/png")
+            raise RuntimeError("Event stream ended unexpectedly")
+
 
     ###
     # Websocket

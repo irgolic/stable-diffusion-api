@@ -528,6 +528,251 @@ paths:
       security:
       - OAuth2PasswordBearer: []
       summary: Get Blob
+  /img2img:
+    get:
+      operationId: get_endpoint_img2img_get
+      parameters:
+      - in: query
+        name: pipeline
+        required: false
+        schema:
+          default: stable_diffusion_mega
+          enum:
+          - stable_diffusion_mega
+          title: Pipeline
+          type: string
+      - in: query
+        name: pipeline_method
+        required: false
+        schema:
+          default: img2img
+          enum:
+          - img2img
+          title: Pipeline Method
+          type: string
+      - in: query
+        name: model
+        required: false
+        schema:
+          default: CompVis/stable-diffusion-v1-4
+          title: Model
+          type: string
+      - in: query
+        name: prompt
+        required: true
+        schema:
+          title: Prompt
+          type: string
+      - in: query
+        name: negative_prompt
+        required: false
+        schema:
+          title: Negative Prompt
+          type: string
+      - in: query
+        name: steps
+        required: false
+        schema:
+          default: 20
+          title: Steps
+          type: integer
+      - in: query
+        name: guidance
+        required: false
+        schema:
+          default: 7.5
+          minimum: 1.0
+          title: Guidance
+          type: number
+      - in: query
+        name: scheduler
+        required: false
+        schema:
+          default: plms
+          enum:
+          - plms
+          - ddim
+          - k-lms
+          title: Scheduler
+          type: string
+      - in: query
+        name: safety_filter
+        required: false
+        schema:
+          default: true
+          title: Safety Filter
+          type: boolean
+      - in: query
+        name: seed
+        required: false
+        schema:
+          title: Seed
+          type: integer
+      - in: query
+        name: initial_image
+        required: true
+        schema:
+          title: Initial Image
+          type: string
+      - in: query
+        name: strength
+        required: false
+        schema:
+          default: 0.8
+          maximum: 1.0
+          minimum: 0.0
+          title: Strength
+          type: number
+      - in: query
+        name: token
+        required: false
+        schema:
+          title: Token
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              default: {}
+              title: Extra Kwargs
+              type: object
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: {}
+            image/png: {}
+          description: Successful Response
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+          description: Validation Error
+      security:
+      - OAuth2PasswordBearer: []
+      summary: Get Endpoint
+  /inpaint:
+    get:
+      operationId: get_endpoint_inpaint_get
+      parameters:
+      - in: query
+        name: pipeline
+        required: false
+        schema:
+          default: stable_diffusion_mega
+          enum:
+          - stable_diffusion_mega
+          title: Pipeline
+          type: string
+      - in: query
+        name: pipeline_method
+        required: false
+        schema:
+          default: inpaint
+          enum:
+          - inpaint
+          title: Pipeline Method
+          type: string
+      - in: query
+        name: model
+        required: false
+        schema:
+          default: runwayml/stable-diffusion-inpainting
+          title: Model
+          type: string
+      - in: query
+        name: prompt
+        required: true
+        schema:
+          title: Prompt
+          type: string
+      - in: query
+        name: negative_prompt
+        required: false
+        schema:
+          title: Negative Prompt
+          type: string
+      - in: query
+        name: steps
+        required: false
+        schema:
+          default: 20
+          title: Steps
+          type: integer
+      - in: query
+        name: guidance
+        required: false
+        schema:
+          default: 7.5
+          minimum: 1.0
+          title: Guidance
+          type: number
+      - in: query
+        name: scheduler
+        required: false
+        schema:
+          default: plms
+          enum:
+          - plms
+          - ddim
+          - k-lms
+          title: Scheduler
+          type: string
+      - in: query
+        name: safety_filter
+        required: false
+        schema:
+          default: true
+          title: Safety Filter
+          type: boolean
+      - in: query
+        name: seed
+        required: false
+        schema:
+          title: Seed
+          type: integer
+      - in: query
+        name: initial_image
+        required: true
+        schema:
+          title: Initial Image
+          type: string
+      - in: query
+        name: mask
+        required: true
+        schema:
+          title: Mask
+          type: string
+      - in: query
+        name: token
+        required: false
+        schema:
+          title: Token
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              default: {}
+              title: Extra Kwargs
+              type: object
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: {}
+            image/png: {}
+          description: Successful Response
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+          description: Validation Error
+      security:
+      - OAuth2PasswordBearer: []
+      summary: Get Endpoint
   /task:
     post:
       operationId: create_task_task_post
@@ -638,7 +883,7 @@ paths:
       summary: Public Access Token
   /txt2img:
     get:
-      operationId: txt2img_txt2img_get
+      operationId: get_endpoint_txt2img_get
       parameters:
       - in: query
         name: pipeline
@@ -758,7 +1003,7 @@ paths:
           description: Validation Error
       security:
       - OAuth2PasswordBearer: []
-      summary: Txt2Img
+      summary: Get Endpoint
   /user/{username}:
     post:
       operationId: signup_user__username__post

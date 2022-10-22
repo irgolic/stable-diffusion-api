@@ -7,6 +7,9 @@ from stable_diffusion_server.models.blob import BlobId
 
 
 class Params(pydantic.BaseModel):
+    # private class attribute
+    _endpoint_stem: typing.ClassVar[str]
+
     class Config:
         extra = pydantic.Extra.forbid
 
@@ -84,6 +87,8 @@ class Params(pydantic.BaseModel):
 
 
 class Txt2ImgParams(Params):
+    _endpoint_stem = 'txt2img'
+
     pipeline: Literal["stable_diffusion_mega"] = "stable_diffusion_mega"
     pipeline_method: Literal["text2img"] = "text2img"
 
@@ -96,6 +101,8 @@ class Txt2ImgParams(Params):
 
 
 class Img2ImgParams(Params):
+    _endpoint_stem = 'img2img'
+
     pipeline: Literal["stable_diffusion_mega"] = "stable_diffusion_mega"
     pipeline_method: Literal["img2img"] = "img2img"
 
@@ -117,6 +124,8 @@ class Img2ImgParams(Params):
 
 
 class InpaintParams(Params):
+    _endpoint_stem = 'inpaint'
+
     pipeline: Literal["stable_diffusion_mega"] = "stable_diffusion_mega"
     pipeline_method: Literal["inpaint"] = "inpaint"
 
