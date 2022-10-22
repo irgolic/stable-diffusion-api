@@ -42,6 +42,7 @@ services:
       - redis
     environment:
       REDIS_HOST: redis
+      SECRET_KEY: $SECRET_KEY
       HUGGINGFACE_TOKEN: $HUGGINGFACE_TOKEN
       REDIS_PASSWORD: $REDIS_PASSWORD
       REDIS_PORT: $REDIS_PORT
