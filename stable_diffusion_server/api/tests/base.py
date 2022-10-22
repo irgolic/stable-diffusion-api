@@ -1,6 +1,7 @@
 import asyncio
 import io
 import json
+import urllib.parse
 from typing import Any
 from unittest import mock
 
@@ -132,7 +133,7 @@ class BaseTestApp:
             'event_type': 'finished',
             'task_id': task_id,
             'image': {
-                'blob_id': mock.ANY,
+                'blob_url': mock.ANY,
                 'parameters_used': resolved_params,
             }
         }
@@ -156,8 +157,9 @@ class BaseTestApp:
         poll_event = await self.assert_poll_status(client, task_id, expected_event)
         return poll_event
 
-    async def get_blob(self, client, blob_id: str) -> requests.Response:
-        response = await client.get(f'/blob/{blob_id}')
+    async def get_blob(self, client, blob_url: str) -> requests.Response:
+        path = urllib.parse.urlparse(blob_url).path
+        response = await client.get(path)
         assert response.status_code == 200
         return response
 
@@ -192,15 +194,15 @@ class BaseTestApp:
         # assert seed got set after randomization
         assert finished_event['image']['parameters_used']['seed'] is not None
 
-        generated_image_blob_id = finished_event['image']['blob_id']
+        generated_image_blob_url = finished_event['image']['blob_url']
 
         # download the blob
-        response = await self.get_blob(client, generated_image_blob_id)
+        response = await self.get_blob(client, generated_image_blob_url)
 
         # upload the blob
         img_bytes = response.content
         upload_response = await self.post_blob(client, img_bytes)
-        uploaded_blob_id = upload_response.json()
+        uploaded_blob_url = upload_response.json()
 
         # use manual seed
         manual_seed = 42
@@ -209,37 +211,37 @@ class BaseTestApp:
         finished_event = await self.post_task(
             client,
             dummy_img2img_params | {
-                "initial_image": uploaded_blob_id,
+                "initial_image": uploaded_blob_url,
                 'seed': manual_seed,
             },
             resolved_dummy_img2img_params | {
-                "initial_image": uploaded_blob_id,
+                "initial_image": uploaded_blob_url,
                 'seed': manual_seed,
             },
             websocket,
         )
 
         # download the blob (and do nothing with it)
-        generated_image_blob_id = finished_event['image']['blob_id']
-        await self.get_blob(client, generated_image_blob_id)
+        generated_image_blob_url = finished_event['image']['blob_url']
+        await self.get_blob(client, generated_image_blob_url)
 
         # run the generated image with the previous image as mask through inpaint
         finished_event = await self.post_task(
             client,
             dummy_inpaint_params | {
-                "initial_image": uploaded_blob_id,
-                "mask": generated_image_blob_id,
+                "initial_image": uploaded_blob_url,
+                "mask": generated_image_blob_url,
             },
             resolved_dummy_inpaint_params | {
-                "initial_image": uploaded_blob_id,
-                "mask": generated_image_blob_id,
+                "initial_image": uploaded_blob_url,
+                "mask": generated_image_blob_url,
             },
             websocket,
         )
 
         # download the blob (and do nothing with it)
-        generated_image_blob_id = finished_event['image']['blob_id']
-        await self.get_blob(client, generated_image_blob_id)
+        generated_image_blob_url = finished_event['image']['blob_url']
+        await self.get_blob(client, generated_image_blob_url)
 
     @pytest.mark.asyncio
     async def test_txt2img_2img_without_token(
@@ -252,15 +254,15 @@ class BaseTestApp:
     ):
         finished_event = await self.post_task(client, dummy_txt2img_params, resolved_dummy_txt2img_params)
 
-        generated_image_blob_id = finished_event['image']['blob_id']
+        generated_image_blob_url = finished_event['image']['blob_url']
 
         # download the blob
-        response = await self.get_blob(client, generated_image_blob_id)
+        response = await self.get_blob(client, generated_image_blob_url)
 
         # upload the blob
         img_bytes = response.content
         upload_response = await self.post_blob(client, img_bytes)
-        uploaded_blob_id = upload_response.json()
+        uploaded_blob_url = upload_response.json()
 
         # use manual seed
         manual_seed = 42
@@ -269,19 +271,19 @@ class BaseTestApp:
         finished_event = await self.post_task(
             client,
             dummy_img2img_params | {
-                "initial_image": uploaded_blob_id,
+                "initial_image": uploaded_blob_url,
                 'seed': manual_seed,
             },
             resolved_dummy_img2img_params | {
-                "initial_image": uploaded_blob_id,
+                "initial_image": uploaded_blob_url,
                 'seed': manual_seed,
             },
         )
 
-        generated_image_blob_id = finished_event['image']['blob_id']
+        generated_image_blob_url = finished_event['image']['blob_url']
 
         # download the blob (and do nothing with it)
-        await self.get_blob(client, generated_image_blob_id)
+        await self.get_blob(client, generated_image_blob_url)
 
     @pytest.mark.asyncio
     async def test_sync_txt2img(
@@ -292,4 +294,7 @@ class BaseTestApp:
     ):
         response = await client.get('/txt2img', params=dummy_txt2img_params)
         assert response.status_code == 200
-        assert response.headers['Content-Type'] == 'image/png'
+        assert response.headers['Content-Type'] == 'application/json'
+
+        generated_image = response.json()
+        assert generated_image['parameters_used'] == resolved_dummy_txt2img_params

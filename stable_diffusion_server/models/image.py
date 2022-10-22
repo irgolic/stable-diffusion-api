@@ -1,9 +1,9 @@
 import pydantic
 
-from stable_diffusion_server.models.blob import BlobId
+from stable_diffusion_server.models.blob import BlobUrl
 from stable_diffusion_server.models.params import ParamsUnion
 
 
 class GeneratedImage(pydantic.BaseModel):
-    blob_id: BlobId
+    blob_url: BlobUrl
     parameters_used: ParamsUnion

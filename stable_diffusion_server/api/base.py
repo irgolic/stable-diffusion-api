@@ -17,7 +17,7 @@ from starlette import status
 from starlette.responses import Response
 
 from stable_diffusion_server.api.utils.pyfa_converter import QueryDepends
-from stable_diffusion_server.engine.repos.blob_repo import BlobRepo, BlobId, LocalBlobRepo
+from stable_diffusion_server.engine.repos.blob_repo import BlobRepo, LocalBlobRepo
 from stable_diffusion_server.engine.repos.key_value_repo import KeyValueRepo
 from stable_diffusion_server.engine.repos.messaging_repo import MessagingRepo
 from stable_diffusion_server.engine.repos.user_repo import UserRepo
@@ -26,7 +26,7 @@ from stable_diffusion_server.engine.services.status_service import StatusService
 from stable_diffusion_server.engine.services.task_service import TaskService
 from stable_diffusion_server.models.blob import BlobToken, BlobUrl
 from stable_diffusion_server.models.events import EventUnion, FinishedEvent, CancelledEvent
-from stable_diffusion_server.models.blob import GeneratedImage
+from stable_diffusion_server.models.image import GeneratedImage
 from stable_diffusion_server.models.params import Txt2ImgParams, Img2ImgParams, ParamsUnion
 from stable_diffusion_server.models.task import TaskId, Task
 from stable_diffusion_server.models.user import UserBase, AuthenticationError, User, AuthToken
@@ -159,6 +159,12 @@ def create_app(app_config: AppConfig) -> FastAPI:
         )
 
     async def construct_blob_repo() -> BlobRepo:
+        if issubclass(app_config.blob_repo_class, LocalBlobRepo):
+            return app_config.blob_repo_class(
+                base_blob_url=app_config.BASE_URL + "/blob",
+                secret_key=app_config.SECRET_KEY,
+                algorithm=app_config.ALGORITHM,
+            )
         return app_config.blob_repo_class()
 
     ###
@@ -239,7 +245,7 @@ def create_app(app_config: AppConfig) -> FastAPI:
     ###
 
     @app.get(
-        "/blob/{blob_id}",
+        "/blob/{blob_token}",
         responses={
             200: {
                 "content": {"image/png": {}}
@@ -248,31 +254,26 @@ def create_app(app_config: AppConfig) -> FastAPI:
                 "description": "Blob not found",
             }
         },
-        # FIXME this throws an error, and I don't know why ;-;
-        #  the only side effect is an erroneous "content-type: application/json" in the OpenAPI spec
-        # response_model=Response
+        include_in_schema=False,
     )
     async def get_blob(
-        blob_id: BlobId,
-        blob_repo: BlobRepo = Depends(construct_blob_repo),
-        user: User = Depends(get_user),
+        blob_token: BlobToken,
+        blob_repo: LocalBlobRepo = Depends(construct_blob_repo),
     ) -> Response:
-        blob = blob_repo.get_blob(blob_id, user.username)
+        blob = blob_repo.get_blob_by_token(blob_token)
         if blob is None:
             raise HTTPException(status_code=404, detail="Blob not found")
-        return Response(content=blob.data, media_type="image/png")
+        return Response(content=blob, media_type="image/png")
 
-    @app.post("/blob", response_model=BlobId)
+    @app.post(
+        "/blob",
+        response_model=BlobUrl,
+    )
     async def post_blob(
         blob_data: UploadFile = File(),
-        blob_repo: BlobRepo = Depends(construct_blob_repo),
-        user: User = Depends(get_user),
-    ) -> BlobId:
-        blob = Blob(
-            data=blob_data.file.read(),
-            username=user.username,
-        )
-        return blob_repo.put_blob(blob)
+        blob_repo: LocalBlobRepo = Depends(construct_blob_repo),
+    ) -> BlobUrl:
+        return blob_repo.put_blob(blob_data.file.read())
 
     ###
     # Synchronous API (convenience wrappers for the asynchronous API)
