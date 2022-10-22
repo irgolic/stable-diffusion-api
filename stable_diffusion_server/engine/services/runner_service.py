@@ -7,14 +7,14 @@ import PIL.Image
 import numpy as np
 import torch
 from diffusers import StableDiffusionPipeline, DDIMScheduler, LMSDiscreteScheduler, StableDiffusionImg2ImgPipeline, \
-    StableDiffusionInpaintPipeline
+    StableDiffusionInpaintPipeline, DiffusionPipeline
 
 from stable_diffusion_server.engine.repos.blob_repo import BlobRepo
 from stable_diffusion_server.engine.services.event_service import EventService
 from stable_diffusion_server.models.blob import Blob, BlobId
 from stable_diffusion_server.models.events import FinishedEvent, StartedEvent, CancelledEvent
 from stable_diffusion_server.models.image import GeneratedImage
-from stable_diffusion_server.models.params import Txt2ImgParams, Img2ImgParams, InpaintParams
+from stable_diffusion_server.models.params import Txt2ImgParams, Img2ImgParams, InpaintParams, Params
 from stable_diffusion_server.models.task import Task
 from stable_diffusion_server.models.user import User, Username
 
@@ -36,7 +36,6 @@ class RunnerService:
         if blob is None:
             raise RuntimeError(f'Blob not found: {blob_id}')
         image = PIL.Image.open(io.BytesIO(blob.data))
-        image = image.convert('RGB')  # remove alpha channel
         if is_mask:
             # adapted from diffusers.pipelines.stable_diffusion.pipeline_stable_diffusion_inpaint_legacy.preprocess_mask
             # instead of shrinking it down by 8 times, resize it to 64 x 64 (latent space size)
@@ -50,27 +49,14 @@ class RunnerService:
             mask = 1 - mask  # repaint white, keep black
             mask = torch.from_numpy(mask)
             return mask
-        else:
-            image = image.convert('RGB')
-        return image
+        return image.convert('RGB')
 
-    async def run_task(self, task: Task) -> None:
-        logger.info(f'Handle task: {task}')
-
-        # started event
-        self.event_service.send_event(
-            task.user.session_id,
-            StartedEvent(
-                event_type="started",
-                task_id=task.task_id,
-            )
-        )
-
+    def get_arguments(self, task: Task, device: str) -> tuple[dict[str, Any], dict[str, Any], str]:
         params = task.parameters
 
         # set model
         pipeline_kwargs: dict[str, Any] = {
-            'pretrained_model_name_or_path': params.model_id
+            'pretrained_model_name_or_path': params.model
         }
 
         # set token
@@ -100,9 +86,6 @@ class RunnerService:
                     beta_schedule="scaled_linear"
                 )
 
-        # pick device
-        device = "cuda" if torch.cuda.is_available() else "cpu"
-
         # construct generator, set seed if params.seed is not None
         generator = torch.Generator(device)
         if params.seed is None:
@@ -111,41 +94,100 @@ class RunnerService:
             generator.manual_seed(params.seed)
 
         # extract common pipe kwargs
-        pipe_kwargs = dict(
-            pretrained_model_name_or_path=params.model_id,
+        pipe_kwargs: dict[str, Any] = dict(
             prompt=params.prompt,
             num_inference_steps=params.steps,
             guidance_scale=params.guidance,
             negative_prompt=params.negative_prompt,
+            generator=generator,
         )
 
         # prepare pipeline
+        pipeline_kwargs.update(
+            custom_pipeline=params.pipeline,
+        )
         if isinstance(params, Txt2ImgParams):
-            pipeline = StableDiffusionPipeline
             pipe_kwargs.update(
                 height=params.height,
                 width=params.width,
             )
+            pipeline_kwargs.update(
+                custom_pipeline='stable_diffusion_mega',
+            )
         elif isinstance(params, Img2ImgParams):
-            pipeline = StableDiffusionImg2ImgPipeline
+            init_image = self.get_img(params.initial_image, task.user.username)
             pipe_kwargs.update(
                 strength=params.strength,
-                init_image=self.get_img(params.initial_image, task.user.username),
+                init_image=init_image,
+            )
+            pipeline_kwargs.update(
+                custom_pipeline='stable_diffusion_mega',
             )
         elif isinstance(params, InpaintParams):
-            pipeline = StableDiffusionInpaintPipeline
+            init_image = self.get_img(params.initial_image, task.user.username)
+            mask_image = self.get_img(params.mask, task.user.username, is_mask=True)
             pipe_kwargs.update(
-                init_image=self.get_img(params.initial_image, task.user.username),
-                mask_image=self.get_img(params.mask, task.user.username, is_mask=True),
+                init_image=init_image,
+                mask_image=mask_image,
+            )
+            pipeline_kwargs.update(
+                custom_pipeline='stable_diffusion_mega',
             )
         else:
-            raise NotImplementedError(f'Unknown task type: {params.task_type}')
+            pipeline_kwargs.update(
+                custom_pipeline=params.pipeline,
+            )
+
+        if params.extra_kwargs:
+            pipe_kwargs.update(params.extra_kwargs)
+
+        return pipeline_kwargs, pipe_kwargs, params.pipeline_method
+
+    def save_img(self, img: PIL.Image.Image, task: Task) -> GeneratedImage:
+        # convert pillow image to png bytes
+        img_byte_arr = io.BytesIO()
+        img.save(img_byte_arr, format='PNG')
+        img_bytes = img_byte_arr.getvalue()
+
+        # save blob
+        blob = Blob(
+            data=img_bytes,
+            username=task.user.username,
+        )
+        blob_id = self.blob_repo.put_blob(blob)
+
+        return GeneratedImage(
+            blob_id=blob_id,
+            parameters_used=task.parameters,
+        )
+
+    async def run_task(self, task: Task) -> None:
+        logger.info(f'Handle task: {task}')
+
+        # started event
+        self.event_service.send_event(
+            task.user.session_id,
+            StartedEvent(
+                event_type="started",
+                task_id=task.task_id,
+            )
+        )
+
+        # pick device
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+
+        # extract parameters
+        pipeline_kwargs, pipe_kwargs, pipe_method_name = self.get_arguments(task, device)
 
         # run pipeline
         try:
-            pipe = pipeline.from_pretrained(**pipeline_kwargs)
+            pipe = DiffusionPipeline.from_pretrained(**pipeline_kwargs)
             pipe.to(device)
-            output = pipe(**pipe_kwargs)
+            if pipe_method_name is None:
+                pipe_method = pipe
+            else:
+                pipe_method = getattr(pipe, pipe_method_name)
+            output = pipe_method(**pipe_kwargs)
             img = output.images[0]
         except Exception as e:
             logger.error(f'Error while handling task: {task}', exc_info=True)
@@ -159,22 +201,8 @@ class RunnerService:
             )
             return
 
-        # convert pillow image to png bytes
-        img_byte_arr = io.BytesIO()
-        img.save(img_byte_arr, format='PNG')
-        img_bytes = img_byte_arr.getvalue()
-
-        # save blob
-        blob = Blob(
-            data=img_bytes,
-            username=task.user.username,
-        )
-        blob_id = self.blob_repo.put_blob(blob)
-
-        generated_image = GeneratedImage(
-            blob_id=blob_id,
-            parameters_used=params,
-        )
+        # save image
+        generated_image = self.save_img(img, task)
 
         # finished event
         self.event_service.send_event(

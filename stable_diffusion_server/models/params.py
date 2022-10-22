@@ -1,24 +1,42 @@
-from typing import Optional, Union, Type, Literal
+from typing import Optional, Union, Literal
 
 import pydantic
-from pydantic import conlist, Field
+import typing
 
 from stable_diffusion_server.models.blob import BlobId
-from stable_diffusion_server.models.model import ModelId
 
 
 class Params(pydantic.BaseModel):
-    task_type: str
+    class Config:
+        extra = pydantic.Extra.forbid
 
-    model_id: ModelId = pydantic.Field(
+    pipeline: str = pydantic.Field(
+        description="The pipeline to use for the task. "
+                    "One of: "
+                    "the *file name* of a community pipeline hosted on GitHub under "
+                    "https://github.com/huggingface/diffusers/tree/main/examples/community "
+                    "(e.g., 'clip_guided_stable_diffusion'), "
+                    "*a path* to a *directory* containing a file called `pipeline.py` "
+                    "(e.g., './my_pipeline_directory/'.), or "
+                    "the *repo id* of a custom pipeline hosted on huggingface. "
+                    "See [Loading and Creating Custom Pipelines]"
+                    "(https://huggingface.co/docs/diffusers/main/en/using-diffusers/custom_pipelines). "
+    )
+    pipeline_method: Optional[str] = pydantic.Field(
+        description="The method to call on the pipeline. "
+                    "If unspecified, the pipeline itself will be called.",
+    )
+
+    model: str = pydantic.Field(
         default="CompVis/stable-diffusion-v1-4",
-        description="The model to use for image generation, e.g. 'CompVis/stable-diffusion-v1-4'.",
+        description="The model to use for image generation. "
+                    "One of: "
+                    "the *repo id* of a pretrained pipeline hosted on huggingface "
+                    "(e.g. 'CompVis/stable-diffusion-v1-4'), "
+                    "*a path* to a *directory* containing pipeline weights, "
+                    "(e.g., './my_model_directory/'). ",
     )
-    model_provider: Literal["huggingface"] = pydantic.Field(
-        default="huggingface",
-        description="The model provider to look up `model_id`. "
-                    "Currently only 'huggingface' is supported.",
-    )
+
     prompt: str = pydantic.Field(
         description="The prompt to guide image generation."
     )
@@ -59,10 +77,15 @@ class Params(pydantic.BaseModel):
         description="The randomness seed to use for image generation. "
                     "If not set, a random seed is used."
     )
+    extra_kwargs: dict[str, typing.Any] = pydantic.Field(
+        default={},
+        description="Extra keyword arguments to pass to the pipeline."
+    )
 
 
 class Txt2ImgParams(Params):
-    task_type: Literal["txt2img"] = "txt2img"
+    pipeline: Literal["stable_diffusion_mega"] = "stable_diffusion_mega"
+    pipeline_method: Literal["text2img"] = "text2img"
 
     width: int = pydantic.Field(
         default=512,
@@ -73,7 +96,8 @@ class Txt2ImgParams(Params):
 
 
 class Img2ImgParams(Params):
-    task_type: Literal["img2img"] = "img2img"
+    pipeline: Literal["stable_diffusion_mega"] = "stable_diffusion_mega"
+    pipeline_method: Literal["img2img"] = "img2img"
 
     initial_image: BlobId = pydantic.Field(
         description="The image to use as input for image generation. "
@@ -93,9 +117,10 @@ class Img2ImgParams(Params):
 
 
 class InpaintParams(Params):
-    task_type: Literal["inpaint"] = "inpaint"
+    pipeline: Literal["stable_diffusion_mega"] = "stable_diffusion_mega"
+    pipeline_method: Literal["inpaint"] = "inpaint"
 
-    model_id: ModelId = pydantic.Field(
+    model: str = pydantic.Field(
         default="runwayml/stable-diffusion-inpainting",
         description="The model to use for image generation, e.g. 'runwayml/stable-diffusion-inpainting'.",
     )

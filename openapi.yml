@@ -113,7 +113,13 @@ components:
       title: HTTPValidationError
       type: object
     Img2ImgParams:
+      additionalProperties: false
       properties:
+        extra_kwargs:
+          default: {}
+          description: Extra keyword arguments to pass to the pipeline.
+          title: Extra Kwargs
+          type: object
         guidance:
           default: 7.5
           description: 'Higher guidance encourages generation closely linked to `prompt`,
@@ -130,23 +136,29 @@ components:
             must have a width and height divisible by 8. '
           title: Initial Image
           type: string
-        model_id:
+        model:
           default: CompVis/stable-diffusion-v1-4
-          description: The model to use for image generation, e.g. 'CompVis/stable-diffusion-v1-4'.
-          title: Model Id
-          type: string
-        model_provider:
-          default: huggingface
-          description: The model provider to look up `model_id`. Currently only 'huggingface'
-            is supported.
-          enum:
-          - huggingface
-          title: Model Provider
+          description: 'The model to use for image generation. One of: the *repo id*
+            of a pretrained pipeline hosted on huggingface (e.g. ''CompVis/stable-diffusion-v1-4''),
+            *a path* to a *directory* containing pipeline weights, (e.g., ''./my_model_directory/''). '
+          title: Model
           type: string
         negative_prompt:
           description: The prompt to dissuade image generation. Ignored when not using
             guidance (i.e., if `guidance` is `1`).
           title: Negative Prompt
+          type: string
+        pipeline:
+          default: stable_diffusion_mega
+          enum:
+          - stable_diffusion_mega
+          title: Pipeline
+          type: string
+        pipeline_method:
+          default: img2img
+          enum:
+          - img2img
+          title: Pipeline Method
           type: string
         prompt:
           description: The prompt to guide image generation.
@@ -193,19 +205,19 @@ components:
           minimum: 0.0
           title: Strength
           type: number
-        task_type:
-          default: img2img
-          enum:
-          - img2img
-          title: Task Type
-          type: string
       required:
       - prompt
       - initial_image
       title: Img2ImgParams
       type: object
     InpaintParams:
+      additionalProperties: false
       properties:
+        extra_kwargs:
+          default: {}
+          description: Extra keyword arguments to pass to the pipeline.
+          title: Extra Kwargs
+          type: object
         guidance:
           default: 7.5
           description: 'Higher guidance encourages generation closely linked to `prompt`,
@@ -228,23 +240,27 @@ components:
             image, wherein white indicates the area to be inpainted.
           title: Mask
           type: string
-        model_id:
+        model:
           default: runwayml/stable-diffusion-inpainting
           description: The model to use for image generation, e.g. 'runwayml/stable-diffusion-inpainting'.
-          title: Model Id
-          type: string
-        model_provider:
-          default: huggingface
-          description: The model provider to look up `model_id`. Currently only 'huggingface'
-            is supported.
-          enum:
-          - huggingface
-          title: Model Provider
+          title: Model
           type: string
         negative_prompt:
           description: The prompt to dissuade image generation. Ignored when not using
             guidance (i.e., if `guidance` is `1`).
           title: Negative Prompt
+          type: string
+        pipeline:
+          default: stable_diffusion_mega
+          enum:
+          - stable_diffusion_mega
+          title: Pipeline
+          type: string
+        pipeline_method:
+          default: inpaint
+          enum:
+          - inpaint
+          title: Pipeline Method
           type: string
         prompt:
           description: The prompt to guide image generation.
@@ -278,12 +294,6 @@ components:
             lead to a higher quality image at the expense of slower inference.
           title: Steps
           type: integer
-        task_type:
-          default: inpaint
-          enum:
-          - inpaint
-          title: Task Type
-          type: string
       required:
       - prompt
       - initial_image
@@ -321,7 +331,13 @@ components:
       title: StartedEvent
       type: object
     Txt2ImgParams:
+      additionalProperties: false
       properties:
+        extra_kwargs:
+          default: {}
+          description: Extra keyword arguments to pass to the pipeline.
+          title: Extra Kwargs
+          type: object
         guidance:
           default: 7.5
           description: 'Higher guidance encourages generation closely linked to `prompt`,
@@ -338,23 +354,29 @@ components:
           description: The pixel height of the generated image.
           title: Height
           type: integer
-        model_id:
+        model:
           default: CompVis/stable-diffusion-v1-4
-          description: The model to use for image generation, e.g. 'CompVis/stable-diffusion-v1-4'.
-          title: Model Id
-          type: string
-        model_provider:
-          default: huggingface
-          description: The model provider to look up `model_id`. Currently only 'huggingface'
-            is supported.
-          enum:
-          - huggingface
-          title: Model Provider
+          description: 'The model to use for image generation. One of: the *repo id*
+            of a pretrained pipeline hosted on huggingface (e.g. ''CompVis/stable-diffusion-v1-4''),
+            *a path* to a *directory* containing pipeline weights, (e.g., ''./my_model_directory/''). '
+          title: Model
           type: string
         negative_prompt:
           description: The prompt to dissuade image generation. Ignored when not using
             guidance (i.e., if `guidance` is `1`).
           title: Negative Prompt
+          type: string
+        pipeline:
+          default: stable_diffusion_mega
+          enum:
+          - stable_diffusion_mega
+          title: Pipeline
+          type: string
+        pipeline_method:
+          default: text2img
+          enum:
+          - text2img
+          title: Pipeline Method
           type: string
         prompt:
           description: The prompt to guide image generation.
@@ -388,12 +410,6 @@ components:
             lead to a higher quality image at the expense of slower inference.
           title: Steps
           type: integer
-        task_type:
-          default: txt2img
-          enum:
-          - txt2img
-          title: Task Type
-          type: string
         width:
           default: 512
           description: The pixel width of the generated image.
@@ -625,29 +641,29 @@ paths:
       operationId: txt2img_txt2img_get
       parameters:
       - in: query
-        name: task_type
+        name: pipeline
         required: false
         schema:
-          default: txt2img
+          default: stable_diffusion_mega
           enum:
-          - txt2img
-          title: Task Type
+          - stable_diffusion_mega
+          title: Pipeline
           type: string
       - in: query
-        name: model_id
+        name: pipeline_method
+        required: false
+        schema:
+          default: text2img
+          enum:
+          - text2img
+          title: Pipeline Method
+          type: string
+      - in: query
+        name: model
         required: false
         schema:
           default: CompVis/stable-diffusion-v1-4
-          title: Model Id
-          type: string
-      - in: query
-        name: model_provider
-        required: false
-        schema:
-          default: huggingface
-          enum:
-          - huggingface
-          title: Model Provider
+          title: Model
           type: string
       - in: query
         name: prompt
@@ -720,6 +736,13 @@ paths:
         schema:
           title: Token
           type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              default: {}
+              title: Extra Kwargs
+              type: object
       responses:
         '200':
           content:
