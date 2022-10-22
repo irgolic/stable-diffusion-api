@@ -92,7 +92,6 @@ Help wanted.
 - [x] Seed parameter
 - [x] Inpainting
 - [ ] Community pipelines support
-- [ ] Reference images by URL instead of blob ID
 - [ ] Custom .ckpt models, preloading models
 - [ ] GFPGAN postprocessing (fix faces)
 - [ ] Cancel task endpoint (waiting for https://github.com/huggingface/diffusers/issues/374)
