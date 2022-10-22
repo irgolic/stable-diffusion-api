@@ -90,13 +90,15 @@ Help wanted.
 
 - [x] CUDA and CPU support
 - [x] Seed parameter
-- [ ] Inpainting
-- [ ] Cancel task endpoint
+- [x] Inpainting
+- [ ] Community pipelines support
+- [ ] Reference images by URL instead of blob ID
+- [ ] Custom .ckpt models, preloading models
 - [ ] GFPGAN postprocessing (fix faces)
+- [ ] Cancel task endpoint (waiting for https://github.com/huggingface/diffusers/issues/374)
 - [ ] Speed up image generation
 - [ ] Progress update events (model download, image generation every n steps)
 - [ ] Custom tokenizers, supporting `(emphasis:1.3)` and `[alternating,prompts,0.4]`
-- [ ] More model providers
 - [ ] Other GPU support – testers needed!
 
 ## Installation
