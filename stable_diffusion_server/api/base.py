@@ -7,6 +7,7 @@ from typing import Type, Union, Optional, AsyncGenerator
 
 import bcrypt
 import pydantic
+import typing
 import yaml
 from fastapi.openapi.utils import get_openapi
 
@@ -15,6 +16,7 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from starlette import status
 from starlette.responses import Response
 
+from stable_diffusion_server.api.utils.pyfa_converter import QueryDepends
 from stable_diffusion_server.engine.repos.blob_repo import BlobRepo, BlobId
 from stable_diffusion_server.engine.repos.key_value_repo import KeyValueRepo
 from stable_diffusion_server.engine.repos.messaging_repo import MessagingRepo
@@ -275,14 +277,14 @@ def create_app(app_config: AppConfig) -> FastAPI:
     # Synchronous API (convenience wrappers for the asynchronous API)
     ###
 
-    for param_type in ParamsUnion.__args__:
+    for param_type in typing.get_args(ParamsUnion):
         @app.get(f'/{param_type._endpoint_stem}', responses={
             200: {
                 "content": {"image/png": {}}
             },
         })
         async def get_endpoint(
-            parameters: param_type = Depends(),
+            parameters: param_type = QueryDepends(param_type),  # type: ignore
             user: User = Depends(get_user),
             task_service: TaskService = Depends(construct_task_service),
             blob_repo: BlobRepo = Depends(construct_blob_repo),
