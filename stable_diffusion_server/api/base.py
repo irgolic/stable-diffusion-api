@@ -31,9 +31,9 @@ from stable_diffusion_server.models.user import UserBase, AuthenticationError, U
 
 class AppConfig(pydantic.BaseModel):
     blob_repo_class: Type[BlobRepo]
-    key_value_repo: Type[KeyValueRepo]
+    key_value_repo_class: Type[KeyValueRepo]
     messaging_repo_class: Type[MessagingRepo]
-    user_repo: Type[UserRepo]
+    user_repo_class: Type[UserRepo]
 
     SECRET_KEY: str = pydantic.Field(default_factory=lambda: os.environ["SECRET_KEY"])
     ALGORITHM: str = "HS256"
@@ -55,7 +55,7 @@ def create_app(app_config: AppConfig) -> FastAPI:
     ###
 
     async def construct_user_repo():
-        return app_config.user_repo(
+        return app_config.user_repo_class(
             secret_key=app_config.SECRET_KEY,
             algorithm=app_config.ALGORITHM,
             access_token_expires=datetime.timedelta(minutes=app_config.ACCESS_TOKEN_EXPIRE_MINUTES),
@@ -126,7 +126,7 @@ def create_app(app_config: AppConfig) -> FastAPI:
         return app_config.messaging_repo_class()
 
     async def construct_key_value_repo() -> KeyValueRepo:
-        return app_config.key_value_repo()
+        return app_config.key_value_repo_class()
 
     async def construct_status_service(
         key_value_repo: KeyValueRepo = Depends(construct_key_value_repo),
@@ -347,7 +347,7 @@ def create_app(app_config: AppConfig) -> FastAPI:
 
     def print_link_with_token() -> None:
         # construct token repo
-        user_repo = app_config.user_repo(
+        user_repo = app_config.user_repo_class(
             secret_key=app_config.SECRET_KEY,
             algorithm=app_config.ALGORITHM,
             access_token_expires=datetime.timedelta(minutes=app_config.ACCESS_TOKEN_EXPIRE_MINUTES),
