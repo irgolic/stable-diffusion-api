@@ -17,15 +17,16 @@ from starlette import status
 from starlette.responses import Response
 
 from stable_diffusion_server.api.utils.pyfa_converter import QueryDepends
-from stable_diffusion_server.engine.repos.blob_repo import BlobRepo, BlobId
+from stable_diffusion_server.engine.repos.blob_repo import BlobRepo, BlobId, LocalBlobRepo
 from stable_diffusion_server.engine.repos.key_value_repo import KeyValueRepo
 from stable_diffusion_server.engine.repos.messaging_repo import MessagingRepo
 from stable_diffusion_server.engine.repos.user_repo import UserRepo
 from stable_diffusion_server.engine.services.event_service import EventListener, EventService
 from stable_diffusion_server.engine.services.status_service import StatusService
 from stable_diffusion_server.engine.services.task_service import TaskService
-from stable_diffusion_server.models.blob import Blob
+from stable_diffusion_server.models.blob import BlobToken, BlobUrl
 from stable_diffusion_server.models.events import EventUnion, FinishedEvent, CancelledEvent
+from stable_diffusion_server.models.blob import GeneratedImage
 from stable_diffusion_server.models.params import Txt2ImgParams, Img2ImgParams, ParamsUnion
 from stable_diffusion_server.models.task import TaskId, Task
 from stable_diffusion_server.models.user import UserBase, AuthenticationError, User, AuthToken
@@ -280,19 +281,13 @@ def create_app(app_config: AppConfig) -> FastAPI:
     for param_type in typing.get_args(ParamsUnion):
         @app.get(
             f'/{param_type._endpoint_stem}',
-                responses={
-                200: {
-                    "content": {"image/png": {}}
-                },
-            },
             summary=param_type._endpoint_stem,
         )
         async def get_endpoint(
             parameters: param_type = QueryDepends(param_type),  # type: ignore
             user: User = Depends(get_user),
             task_service: TaskService = Depends(construct_task_service),
-            blob_repo: BlobRepo = Depends(construct_blob_repo),
-        ) -> Response:
+        ) -> GeneratedImage:
             task = Task(
                 parameters=parameters,
                 user=user,
@@ -302,13 +297,8 @@ def create_app(app_config: AppConfig) -> FastAPI:
                 if isinstance(event, CancelledEvent):
                     raise HTTPException(status_code=500, detail=event.reason)
                 if isinstance(event, FinishedEvent):
-                    blob_id = event.image.blob_id
-                    blob = blob_repo.get_blob(blob_id, username=user.username)
-                    if blob is None:
-                        raise RuntimeError("Blob not found")
-                    return Response(content=blob.data, media_type="image/png")
+                    return event.image
             raise RuntimeError("Event stream ended unexpectedly")
-
 
     ###
     # Websocket
