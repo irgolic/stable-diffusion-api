@@ -89,8 +89,8 @@ components:
       type: object
     GeneratedImage:
       properties:
-        blob_id:
-          title: Blob Id
+        blob_url:
+          title: Blob Url
           type: string
         parameters_used:
           anyOf:
@@ -99,7 +99,7 @@ components:
           - $ref: '#/components/schemas/InpaintParams'
           title: Parameters Used
       required:
-      - blob_id
+      - blob_url
       - parameters_used
       title: GeneratedImage
       type: object
@@ -469,37 +469,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
           description: Validation Error
-      security:
-      - OAuth2PasswordBearer: []
       summary: Post Blob
-  /blob/{blob_id}:
-    get:
-      operationId: get_blob_blob__blob_id__get
-      parameters:
-      - in: path
-        name: blob_id
-        required: true
-        schema:
-          title: Blob Id
-          type: string
-      responses:
-        '200':
-          content:
-            application/json:
-              schema: {}
-            image/png: {}
-          description: Successful Response
-        '404':
-          description: Blob not found
-        '422':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
-          description: Validation Error
-      security:
-      - OAuth2PasswordBearer: []
-      summary: Get Blob
   /img2img:
     get:
       operationId: get_endpoint_img2img_get
@@ -659,7 +629,6 @@ paths:
           content:
             application/json:
               schema: {}
-            image/png: {}
           description: Successful Response
         '422':
           content:
@@ -814,7 +783,6 @@ paths:
           content:
             application/json:
               schema: {}
-            image/png: {}
           description: Successful Response
         '422':
           content:
@@ -1064,7 +1032,6 @@ paths:
           content:
             application/json:
               schema: {}
-            image/png: {}
           description: Successful Response
         '422':
           content:

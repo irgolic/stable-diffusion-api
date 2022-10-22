@@ -11,10 +11,10 @@ from diffusers import StableDiffusionPipeline, DDIMScheduler, LMSDiscreteSchedul
 
 from stable_diffusion_server.engine.repos.blob_repo import BlobRepo
 from stable_diffusion_server.engine.services.event_service import EventService
-from stable_diffusion_server.models.blob import Blob, BlobId
+from stable_diffusion_server.models.blob import BlobUrl
 from stable_diffusion_server.models.events import FinishedEvent, StartedEvent, CancelledEvent
-from stable_diffusion_server.models.image import GeneratedImage
 from stable_diffusion_server.models.params import Txt2ImgParams, Img2ImgParams, InpaintParams, Params
+from stable_diffusion_server.models.image import GeneratedImage
 from stable_diffusion_server.models.task import Task
 from stable_diffusion_server.models.user import User, Username
 
@@ -30,12 +30,12 @@ class RunnerService:
         self.blob_repo = blob_repo
         self.event_service = event_service
 
-    def get_img(self, blob_id: BlobId, username: Username, is_mask: bool = False):
+    def get_img(self, blob_url: BlobUrl, is_mask: bool = False):
         # extract image blob into `init_image` pipe kwarg
-        blob = self.blob_repo.get_blob(blob_id, username)
+        blob = self.blob_repo.get_blob(blob_url)
         if blob is None:
-            raise RuntimeError(f'Blob not found: {blob_id}')
-        image = PIL.Image.open(io.BytesIO(blob.data))
+            raise ValueError(f'Blob not found: {blob_url}')
+        image = PIL.Image.open(io.BytesIO(blob))
         if is_mask:
             # adapted from diffusers.pipelines.stable_diffusion.pipeline_stable_diffusion_inpaint_legacy.preprocess_mask
             # instead of shrinking it down by 8 times, resize it to 64 x 64 (latent space size)
@@ -115,7 +115,7 @@ class RunnerService:
                 custom_pipeline='stable_diffusion_mega',
             )
         elif isinstance(params, Img2ImgParams):
-            init_image = self.get_img(params.initial_image, task.user.username)
+            init_image = self.get_img(params.initial_image)
             pipe_kwargs.update(
                 strength=params.strength,
                 init_image=init_image,
@@ -124,8 +124,8 @@ class RunnerService:
                 custom_pipeline='stable_diffusion_mega',
             )
         elif isinstance(params, InpaintParams):
-            init_image = self.get_img(params.initial_image, task.user.username)
-            mask_image = self.get_img(params.mask, task.user.username, is_mask=True)
+            init_image = self.get_img(params.initial_image)
+            mask_image = self.get_img(params.mask, is_mask=True)
             pipe_kwargs.update(
                 init_image=init_image,
                 mask_image=mask_image,
@@ -147,14 +147,10 @@ class RunnerService:
         img_bytes = img_byte_arr.getvalue()
 
         # save blob
-        blob = Blob(
-            data=img_bytes,
-            username=task.user.username,
-        )
-        blob_id = self.blob_repo.put_blob(blob)
+        blob_url = self.blob_repo.put_blob(img_bytes)
 
         return GeneratedImage(
-            blob_id=blob_id,
+            blob_url=blob_url,
             parameters_used=task.parameters,
         )
 

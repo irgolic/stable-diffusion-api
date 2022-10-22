@@ -3,7 +3,7 @@ from typing import Optional, Union, Literal
 import pydantic
 import typing
 
-from stable_diffusion_server.models.blob import BlobId
+from stable_diffusion_server.models.blob import BlobUrl
 
 
 class Params(pydantic.BaseModel):
@@ -102,7 +102,7 @@ class Img2ImgParams(Params):
     pipeline: Literal["stable_diffusion_mega"] = "stable_diffusion_mega"
     pipeline_method: Literal["img2img"] = "img2img"
 
-    initial_image: BlobId = pydantic.Field(
+    initial_image: BlobUrl = pydantic.Field(
         description="The image to use as input for image generation. "
                     "The image must have a width and height divisible by 8. "
     )
@@ -130,11 +130,11 @@ class InpaintParams(Params):
         description="The model to use for image generation, e.g. 'runwayml/stable-diffusion-inpainting'.",
     )
 
-    initial_image: BlobId = pydantic.Field(
+    initial_image: BlobUrl = pydantic.Field(
         description="The image to use as input for image generation. "
                     "It must have a width and height divisible by 8. "
     )
-    mask: BlobId = pydantic.Field(
+    mask: BlobUrl = pydantic.Field(
         description="The mask to use for image generation. "
                     "It must have the same width and height as the initial image. "
                     "It will be converted to a black-and-white image, "
