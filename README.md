@@ -83,22 +83,6 @@ The FinishedEvent contains a URL to the generated image.
 Currently only local blob serving is supported;
 make sure to download the image before shutting down the server.
 
-## Roadmap
-
-Help wanted.
-
-- [x] CUDA and CPU support
-- [x] Seed parameter
-- [x] Inpainting
-- [ ] Community pipelines support
-- [ ] Custom .ckpt models, preloading models
-- [ ] GFPGAN postprocessing (fix faces)
-- [ ] Cancel task endpoint (waiting for https://github.com/huggingface/diffusers/issues/374)
-- [ ] Speed up image generation
-- [ ] Progress update events (model download, image generation every n steps)
-- [ ] Custom tokenizers, supporting `(emphasis:1.3)` and `[alternating,prompts,0.4]`
-- [ ] Other GPU support – testers needed!
-
 ## Installation
 
 Install a virtual environment with python 3.10 and poetry.
