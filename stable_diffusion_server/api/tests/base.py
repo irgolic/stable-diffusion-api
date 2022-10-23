@@ -133,7 +133,7 @@ class BaseTestApp:
             'event_type': 'finished',
             'task_id': task_id,
             'image': {
-                'blob_url': mock.ANY,
+                'image_url': mock.ANY,
                 'parameters_used': resolved_params,
             }
         }
@@ -194,7 +194,7 @@ class BaseTestApp:
         # assert seed got set after randomization
         assert finished_event['image']['parameters_used']['seed'] is not None
 
-        generated_image_blob_url = finished_event['image']['blob_url']
+        generated_image_blob_url = finished_event['image']['image_url']
 
         # download the blob
         response = await self.get_blob(client, generated_image_blob_url)
@@ -222,7 +222,7 @@ class BaseTestApp:
         )
 
         # download the blob (and do nothing with it)
-        generated_image_blob_url = finished_event['image']['blob_url']
+        generated_image_blob_url = finished_event['image']['image_url']
         await self.get_blob(client, generated_image_blob_url)
 
         # run the generated image with the previous image as mask through inpaint
@@ -240,7 +240,7 @@ class BaseTestApp:
         )
 
         # download the blob (and do nothing with it)
-        generated_image_blob_url = finished_event['image']['blob_url']
+        generated_image_blob_url = finished_event['image']['image_url']
         await self.get_blob(client, generated_image_blob_url)
 
     @pytest.mark.asyncio
@@ -254,7 +254,7 @@ class BaseTestApp:
     ):
         finished_event = await self.post_task(client, dummy_txt2img_params, resolved_dummy_txt2img_params)
 
-        generated_image_blob_url = finished_event['image']['blob_url']
+        generated_image_blob_url = finished_event['image']['image_url']
 
         # download the blob
         response = await self.get_blob(client, generated_image_blob_url)
@@ -280,7 +280,7 @@ class BaseTestApp:
             },
         )
 
-        generated_image_blob_url = finished_event['image']['blob_url']
+        generated_image_blob_url = finished_event['image']['image_url']
 
         # download the blob (and do nothing with it)
         await self.get_blob(client, generated_image_blob_url)
