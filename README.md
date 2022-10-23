@@ -75,7 +75,7 @@ Event types:
 - PendingEvent
 - StartedEvent
 - FinishedEvent (with `image_url` and `parameters_used`)
-- CancelledEvent (with `reason`)
+- AbortedEvent (with `reason`)
 
 #### Results
 

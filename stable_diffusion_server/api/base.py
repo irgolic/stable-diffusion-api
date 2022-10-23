@@ -25,7 +25,7 @@ from stable_diffusion_server.engine.services.event_service import EventListener,
 from stable_diffusion_server.engine.services.status_service import StatusService
 from stable_diffusion_server.engine.services.task_service import TaskService
 from stable_diffusion_server.models.blob import BlobToken, BlobUrl
-from stable_diffusion_server.models.events import EventUnion, FinishedEvent, CancelledEvent
+from stable_diffusion_server.models.events import EventUnion, FinishedEvent, AbortedEvent
 from stable_diffusion_server.models.image import GeneratedImage
 from stable_diffusion_server.models.params import Txt2ImgParams, Img2ImgParams, ParamsUnion
 from stable_diffusion_server.models.task import TaskId, Task
@@ -295,7 +295,7 @@ def create_app(app_config: AppConfig) -> FastAPI:
             )
             task_service.push_task(task)
             async for event in subscribe_to_task(task.task_id):
-                if isinstance(event, CancelledEvent):
+                if isinstance(event, AbortedEvent):
                     raise HTTPException(status_code=500, detail=event.reason)
                 if isinstance(event, FinishedEvent):
                     return event.image
