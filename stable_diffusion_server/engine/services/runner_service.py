@@ -12,7 +12,7 @@ from diffusers import StableDiffusionPipeline, DDIMScheduler, LMSDiscreteSchedul
 from stable_diffusion_server.engine.repos.blob_repo import BlobRepo
 from stable_diffusion_server.engine.services.event_service import EventService
 from stable_diffusion_server.models.blob import BlobUrl
-from stable_diffusion_server.models.events import FinishedEvent, StartedEvent, CancelledEvent
+from stable_diffusion_server.models.events import FinishedEvent, StartedEvent, AbortedEvent
 from stable_diffusion_server.models.params import Txt2ImgParams, Img2ImgParams, InpaintParams, Params
 from stable_diffusion_server.models.image import GeneratedImage
 from stable_diffusion_server.models.task import Task
@@ -186,8 +186,8 @@ class RunnerService:
             logger.error(f'Error while handling task: {task}', exc_info=True)
             self.event_service.send_event(
                 task.user.session_id,
-                CancelledEvent(
-                    event_type="cancelled",
+                AbortedEvent(
+                    event_type="aborted",
                     task_id=task.task_id,
                     reason="Internal error: " + str(e),
                 )
