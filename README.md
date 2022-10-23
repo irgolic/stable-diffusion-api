@@ -11,8 +11,7 @@ The aim is to provide a lightweight, easily extensible backend for image generat
 Supported parameters:
 - `prompt`: text prompt **(required)**, e.g. `corgi with a top hat`
 - `negative_prompt`: negative prompt, e.g. `monocle`
-- `model_id`: model name, default `CompVis/stable-diffusion-v1-4`
-- `model_provider`: model provider, currently only `huggingface` is supported
+- `model`: model name, default `CompVis/stable-diffusion-v1-4`
 - `steps`: number of steps, default `20`
 - `guidance`: relatedness to `prompt`, default `7.5`
 - `scheduler`: either `plms`, `ddim`, or `k-lms`
@@ -24,15 +23,14 @@ Txt2Img also supports:
 - `height`: image height, default `512`
 
 Img2Img also supports:
-- `initial_image`: `blob_id` of image to be transformed **(required)**
+- `initial_image`: URL of image to be transformed **(required)**
 - `strength`: how much to change the image, default `0.8`
 
 Inpainting also supports:
-- `initial_image`: `blob_id` of image to be transformed **(required)**
-- `mask`: `blob_id` of mask image **(required)**
+- `initial_image`: URL of image to be transformed **(required)**
+- `mask`: URL of mask image **(required)**
 
-Img2Img can reference a previously generated image's `blob_id`. 
-Alternatively, `POST /blob` to upload a new image, and get a `blob_id`.
+`POST /blob` to upload a new image to local storage, and get a URL.
 
 ## Usage
 
@@ -75,14 +73,14 @@ The model will be downloaded and cached, and the task will be queued for executi
 Event types:
 - PendingEvent
 - StartedEvent
-- FinishedEvent (with `blob_id`)
+- FinishedEvent (with `image_url` and `parameters_used`)
 - CancelledEvent (with `reason`)
 
 #### Results
 
-A FinishedEvent contains an `image` field including its `blob_id` and `parameters_used`.
-
-`GET /blob/{blob_id}` to get the image in PNG format.
+The FinishedEvent contains a URL to the generated image.
+Currently only local blob serving is supported;
+make sure to download the image before shutting down the server.
 
 ## Roadmap
 
@@ -134,6 +132,7 @@ Copy `.env.example` to `.env` and edit as needed (make sure to regenerate the se
 
 - `SECRET_KEY`: The secret key used to sign the JWT tokens.
 - `PRINT_LINK_WITH_TOKEN`: Whether to print a link with the token to the console on startup.
+- `BASE_URL`: Used to build link with token printed upon startup and local storage blob URLs.
 - `ENABLE_PUBLIC_ACCESS`: Whether to enable public token generation (anything except empty string enables it).
 - `ENABLE_SIGNUP`: Whether to enable user signup (anything except empty string enables it).
 - `REDIS_PORT`: The port of the Redis server.

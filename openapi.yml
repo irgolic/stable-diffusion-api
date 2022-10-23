@@ -89,8 +89,8 @@ components:
       type: object
     GeneratedImage:
       properties:
-        blob_url:
-          title: Blob Url
+        image_url:
+          title: Image Url
           type: string
         parameters_used:
           anyOf:
@@ -99,7 +99,7 @@ components:
           - $ref: '#/components/schemas/InpaintParams'
           title: Parameters Used
       required:
-      - blob_url
+      - image_url
       - parameters_used
       title: GeneratedImage
       type: object
