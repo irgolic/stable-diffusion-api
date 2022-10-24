@@ -8,6 +8,7 @@ import numpy as np
 import torch
 from diffusers import StableDiffusionPipeline, DDIMScheduler, LMSDiscreteScheduler, StableDiffusionImg2ImgPipeline, \
     StableDiffusionInpaintPipeline, DiffusionPipeline
+from huggingface_hub.utils import HfHubHTTPError
 
 from stable_diffusion_server.engine.repos.blob_repo import BlobRepo
 from stable_diffusion_server.engine.services.event_service import EventService
@@ -185,6 +186,9 @@ class RunnerService:
             output = pipe_method(**pipe_kwargs)
             img = output.images[0]
         except Exception as e:
+            if isinstance(e, HfHubHTTPError) and e.__cause__ is not None:
+                # better error for missing pipeline
+                e = e.__cause__
             logger.error(f'Error while handling task: {task}', exc_info=True)
             self.event_service.send_event(
                 task.user.session_id,
