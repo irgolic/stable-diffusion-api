@@ -739,7 +739,7 @@ paths:
           description: Validation Error
       security:
       - OAuth2PasswordBearer: []
-      summary: img2img
+      summary: Img2img
   /inpaint:
     get:
       operationId: get_endpoint_inpaint_get
@@ -893,7 +893,153 @@ paths:
           description: Validation Error
       security:
       - OAuth2PasswordBearer: []
-      summary: inpaint
+      summary: Inpaint
+  /pipeline:
+    get:
+      operationId: get_endpoint_pipeline_get
+      parameters:
+      - description: 'The pipeline to use for the task. One of: the *file name* of
+          a community pipeline hosted on GitHub under https://github.com/huggingface/diffusers/tree/main/examples/community
+          (e.g., ''clip_guided_stable_diffusion''), *a path* to a *directory* containing
+          a file called `pipeline.py` (e.g., ''./my_pipeline_directory/''.), or the
+          *repo id* of a custom pipeline hosted on huggingface. See [Loading and Creating
+          Custom Pipelines](https://huggingface.co/docs/diffusers/main/en/using-diffusers/custom_pipelines). '
+        in: query
+        name: pipeline
+        required: true
+        schema:
+          description: 'The pipeline to use for the task. One of: the *file name*
+            of a community pipeline hosted on GitHub under https://github.com/huggingface/diffusers/tree/main/examples/community
+            (e.g., ''clip_guided_stable_diffusion''), *a path* to a *directory* containing
+            a file called `pipeline.py` (e.g., ''./my_pipeline_directory/''.), or
+            the *repo id* of a custom pipeline hosted on huggingface. See [Loading
+            and Creating Custom Pipelines](https://huggingface.co/docs/diffusers/main/en/using-diffusers/custom_pipelines). '
+          title: Pipeline
+          type: string
+      - description: The method to call on the pipeline. If unspecified, the pipeline
+          itself will be called.
+        in: query
+        name: pipeline_method
+        required: false
+        schema:
+          description: The method to call on the pipeline. If unspecified, the pipeline
+            itself will be called.
+          title: Pipeline Method
+          type: string
+      - description: 'The model to use for image generation. One of: the *repo id*
+          of a pretrained pipeline hosted on huggingface (e.g. ''CompVis/stable-diffusion-v1-4''),
+          *a path* to a *directory* containing pipeline weights, (e.g., ''./my_model_directory/''). '
+        in: query
+        name: model
+        required: false
+        schema:
+          default: CompVis/stable-diffusion-v1-4
+          description: 'The model to use for image generation. One of: the *repo id*
+            of a pretrained pipeline hosted on huggingface (e.g. ''CompVis/stable-diffusion-v1-4''),
+            *a path* to a *directory* containing pipeline weights, (e.g., ''./my_model_directory/''). '
+          title: Model
+          type: string
+      - description: The prompt to guide image generation.
+        in: query
+        name: prompt
+        required: true
+        schema:
+          description: The prompt to guide image generation.
+          title: Prompt
+          type: string
+      - description: The prompt to dissuade image generation. Ignored when not using
+          guidance (i.e., if `guidance` is `1`).
+        in: query
+        name: negative_prompt
+        required: false
+        schema:
+          description: The prompt to dissuade image generation. Ignored when not using
+            guidance (i.e., if `guidance` is `1`).
+          title: Negative Prompt
+          type: string
+      - description: The number of denoising steps. More denoising steps usually lead
+          to a higher quality image at the expense of slower inference.
+        in: query
+        name: steps
+        required: false
+        schema:
+          default: 20
+          description: The number of denoising steps. More denoising steps usually
+            lead to a higher quality image at the expense of slower inference.
+          title: Steps
+          type: integer
+      - description: 'Higher guidance encourages generation closely linked to `prompt`,
+          usually at the expense of lower image quality. Try using more steps to improve
+          image quality when using high guidance. Guidance is disabled by setting
+          `guidance` to `1`. `guidance` is defined as `w` of equation 2. of [ImagenPaper](https://arxiv.org/pdf/2205.11487.pdf).
+          See also: [Classifier-Free Diffusion Guidance](https://arxiv.org/abs/2207.12598).'
+        in: query
+        name: guidance
+        required: false
+        schema:
+          default: 7.5
+          description: 'Higher guidance encourages generation closely linked to `prompt`,
+            usually at the expense of lower image quality. Try using more steps to
+            improve image quality when using high guidance. Guidance is disabled by
+            setting `guidance` to `1`. `guidance` is defined as `w` of equation 2.
+            of [ImagenPaper](https://arxiv.org/pdf/2205.11487.pdf). See also: [Classifier-Free
+            Diffusion Guidance](https://arxiv.org/abs/2207.12598).'
+          minimum: 1.0
+          title: Guidance
+          type: number
+      - description: The scheduler to use for image generation. Currently only 'plms',
+          'ddim', and 'k-lms', are supported.
+        in: query
+        name: scheduler
+        required: false
+        schema:
+          default: plms
+          description: The scheduler to use for image generation. Currently only 'plms',
+            'ddim', and 'k-lms', are supported.
+          enum:
+          - plms
+          - ddim
+          - k-lms
+          title: Scheduler
+          type: string
+      - description: Ensure that you abide by the conditions of the Stable Diffusion
+          license and do not expose unfiltered results in services or applications
+          open to the public. For more information, please see https://github.com/huggingface/diffusers/pull/254
+        in: query
+        name: safety_filter
+        required: false
+        schema:
+          default: true
+          description: Ensure that you abide by the conditions of the Stable Diffusion
+            license and do not expose unfiltered results in services or applications
+            open to the public. For more information, please see https://github.com/huggingface/diffusers/pull/254
+          title: Safety Filter
+          type: boolean
+      - description: The randomness seed to use for image generation. If not set,
+          a random seed is used.
+        in: query
+        name: seed
+        required: false
+        schema:
+          description: The randomness seed to use for image generation. If not set,
+            a random seed is used.
+          title: Seed
+          type: integer
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: {}
+          description: Successful Response
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+          description: Validation Error
+      security:
+      - OAuth2PasswordBearer: []
+      summary: Pipeline
   /task:
     post:
       operationId: create_task_task_post
@@ -902,10 +1048,10 @@ paths:
           application/json:
             schema:
               anyOf:
+              - $ref: '#/components/schemas/Params'
               - $ref: '#/components/schemas/Txt2ImgParams'
               - $ref: '#/components/schemas/Img2ImgParams'
               - $ref: '#/components/schemas/InpaintParams'
-              - $ref: '#/components/schemas/Params'
               title: Parameters
         required: true
       responses:
@@ -1143,7 +1289,7 @@ paths:
           description: Validation Error
       security:
       - OAuth2PasswordBearer: []
-      summary: txt2img
+      summary: Txt2img
   /user/{username}:
     post:
       operationId: signup_user__username__post

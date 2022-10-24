@@ -299,3 +299,29 @@ class BaseTestApp:
 
         generated_image = response.json()
         assert generated_image['parameters_used'] == resolved_dummy_txt2img_params
+
+    @pytest.mark.asyncio
+    async def test_sync_arbitrary(
+        self,
+        client,
+        common_params,
+        resolved_common_params,
+    ):
+        arb_params = {
+            "pipeline": "stable_diffusion_mega",
+            "pipeline_method": "text2img",
+        }
+        extra_params = {
+            "width": 256,
+            "height": 256,
+        }
+        response = await client.get('/pipeline', params=common_params | arb_params | extra_params)
+        assert response.status_code == 200
+        assert response.headers['Content-Type'] == 'application/json'
+
+        expected_params = resolved_common_params | arb_params | {
+            "extra_parameters": extra_params,
+        }
+
+        generated_image = response.json()
+        assert generated_image['parameters_used'] == expected_params

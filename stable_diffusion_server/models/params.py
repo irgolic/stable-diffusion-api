@@ -1,13 +1,12 @@
-from typing import Optional, Union, Literal
+from typing import Optional, Union, Literal, ClassVar, Any
 
 import pydantic
-import typing
 
 from stable_diffusion_server.models.blob import BlobUrl
 
 
 class Params(pydantic.BaseModel):
-    _endpoint_stem: typing.ClassVar[str]
+    _endpoint_stem: ClassVar[str] = 'pipeline'
 
     class Config:
         extra = pydantic.Extra.forbid
@@ -25,6 +24,7 @@ class Params(pydantic.BaseModel):
                     "(https://huggingface.co/docs/diffusers/main/en/using-diffusers/custom_pipelines). "
     )
     pipeline_method: Optional[str] = pydantic.Field(
+        default=None,
         description="The method to call on the pipeline. "
                     "If unspecified, the pipeline itself will be called.",
     )
@@ -79,7 +79,7 @@ class Params(pydantic.BaseModel):
         description="The randomness seed to use for image generation. "
                     "If not set, a random seed is used."
     )
-    extra_parameters: Optional[typing.Dict[str, typing.Any]] = pydantic.Field(
+    extra_parameters: dict[str, Any] = pydantic.Field(
         default={},
         description="Extra parameters to pass to the pipeline. "
                     "See the documentation of the pipeline for more information."
@@ -147,4 +147,4 @@ class InpaintParams(Params):
 
 
 ParamsUnion = Union[tuple(Params.__subclasses__())]  # type: ignore
-AnyParams = Union[ParamsUnion, Params]
+AnyParams = Union[Params, ParamsUnion]

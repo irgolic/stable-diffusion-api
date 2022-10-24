@@ -1,3 +1,4 @@
+import ast
 import asyncio
 import os
 import datetime
@@ -14,6 +15,7 @@ from fastapi.openapi.utils import get_openapi
 from fastapi import FastAPI, Depends, websockets, Query, HTTPException, File, UploadFile
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from starlette import status
+from starlette.requests import Request
 from starlette.responses import Response
 
 from stable_diffusion_server.api.utils.pyfa_converter import QueryDepends
@@ -27,7 +29,7 @@ from stable_diffusion_server.engine.services.task_service import TaskService
 from stable_diffusion_server.models.blob import BlobToken, BlobUrl
 from stable_diffusion_server.models.events import EventUnion, FinishedEvent, AbortedEvent
 from stable_diffusion_server.models.image import GeneratedImage
-from stable_diffusion_server.models.params import Txt2ImgParams, Img2ImgParams, ParamsUnion, AnyParams
+from stable_diffusion_server.models.params import Txt2ImgParams, Img2ImgParams, ParamsUnion, AnyParams, Params
 from stable_diffusion_server.models.task import TaskId, Task
 from stable_diffusion_server.models.user import UserBase, AuthenticationError, User, AuthToken
 
@@ -279,27 +281,39 @@ def create_app(app_config: AppConfig) -> FastAPI:
     # Synchronous API (convenience wrappers for the asynchronous API)
     ###
 
-    for param_type in typing.get_args(ParamsUnion):
+    async def task_completion(task_id: TaskId):
+        async for event in subscribe_to_task(task_id):
+            if isinstance(event, AbortedEvent):
+                raise HTTPException(status_code=500, detail=event.reason)
+            if isinstance(event, FinishedEvent):
+                return event.image
+        raise RuntimeError("Event stream ended unexpectedly")
+
+    for param_type in typing.get_args(AnyParams):
         @app.get(
             f'/{param_type._endpoint_stem}',
-            summary=param_type._endpoint_stem,
+            summary=param_type._endpoint_stem.capitalize(),
         )
         async def get_endpoint(
+            request: Request,
             parameters: param_type = QueryDepends(param_type),  # type: ignore
             user: User = Depends(get_user),
             task_service: TaskService = Depends(construct_task_service),
         ) -> GeneratedImage:
+            # put erroneous query params into extra_parameters
+            for key, value in request.query_params.items():
+                if hasattr(parameters, key) or key == 'token':
+                    continue
+                eval_value = ast.literal_eval(value)
+                parameters.extra_parameters[key] = eval_value
+
             task = Task(
                 parameters=parameters,
                 user=user,
             )
+
             task_service.push_task(task)
-            async for event in subscribe_to_task(task.task_id):
-                if isinstance(event, AbortedEvent):
-                    raise HTTPException(status_code=500, detail=event.reason)
-                if isinstance(event, FinishedEvent):
-                    return event.image
-            raise RuntimeError("Event stream ended unexpectedly")
+            return await task_completion(task.task_id)
 
     ###
     # Websocket

@@ -51,7 +51,7 @@ class RunnerService:
             return mask
         return image.convert('RGB')
 
-    def get_arguments(self, task: Task, device: str) -> tuple[dict[str, Any], dict[str, Any], str]:
+    def get_arguments(self, task: Task, device: str) -> tuple[dict[str, Any], dict[str, Any], Optional[str]]:
         params = task.parameters
 
         # set model
