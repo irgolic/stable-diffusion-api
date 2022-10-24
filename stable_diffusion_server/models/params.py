@@ -143,3 +143,4 @@ class InpaintParams(Params):
 
 
 ParamsUnion = Union[tuple(Params.__subclasses__())]  # type: ignore
+AnyParams = Union[ParamsUnion, Params]

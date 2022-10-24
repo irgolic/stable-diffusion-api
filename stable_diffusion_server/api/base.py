@@ -27,7 +27,7 @@ from stable_diffusion_server.engine.services.task_service import TaskService
 from stable_diffusion_server.models.blob import BlobToken, BlobUrl
 from stable_diffusion_server.models.events import EventUnion, FinishedEvent, AbortedEvent
 from stable_diffusion_server.models.image import GeneratedImage
-from stable_diffusion_server.models.params import Txt2ImgParams, Img2ImgParams, ParamsUnion
+from stable_diffusion_server.models.params import Txt2ImgParams, Img2ImgParams, ParamsUnion, AnyParams
 from stable_diffusion_server.models.task import TaskId, Task
 from stable_diffusion_server.models.user import UserBase, AuthenticationError, User, AuthToken
 
@@ -212,7 +212,7 @@ def create_app(app_config: AppConfig) -> FastAPI:
 
     @app.post("/task", response_model=TaskId)
     async def create_task(
-        parameters: ParamsUnion,
+        parameters: AnyParams,
         task_service: TaskService = Depends(construct_task_service),
         user: User = Depends(get_user),
     ) -> TaskId:
