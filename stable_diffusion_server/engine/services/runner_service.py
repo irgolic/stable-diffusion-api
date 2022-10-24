@@ -138,6 +138,8 @@ class RunnerService:
                 custom_pipeline=params.pipeline,
             )
 
+        pipe_kwargs.update(params.extra_parameters)
+
         return pipeline_kwargs, pipe_kwargs, params.pipeline_method
 
     def save_img(self, img: PIL.Image.Image, task: Task) -> GeneratedImage:
