@@ -7,7 +7,6 @@ from stable_diffusion_server.models.blob import BlobUrl
 
 
 class Params(pydantic.BaseModel):
-    # private class attribute
     _endpoint_stem: typing.ClassVar[str]
 
     class Config:
@@ -55,7 +54,7 @@ class Params(pydantic.BaseModel):
     )
     guidance: float = pydantic.Field(
         default=7.5,
-        minimum=1.0,
+        ge=1.0,
         description="Higher guidance encourages generation closely linked to `prompt`, "
                     "usually at the expense of lower image quality. "
                     "Try using more steps to improve image quality when using high guidance. "
@@ -79,6 +78,11 @@ class Params(pydantic.BaseModel):
         default=None,
         description="The randomness seed to use for image generation. "
                     "If not set, a random seed is used."
+    )
+    extra_parameters: Optional[typing.Dict[str, typing.Any]] = pydantic.Field(
+        default={},
+        description="Extra parameters to pass to the pipeline. "
+                    "See the documentation of the pipeline for more information."
     )
 
 
@@ -108,8 +112,8 @@ class Img2ImgParams(Params):
     )
     strength: float = pydantic.Field(
         default=0.8,
-        minimum=0.0,
-        maximum=1.0,
+        ge=0.0,
+        le=1.0,
         description="Conceptually, indicates how much to transform the image. "
                     "The image will be used as a starting point, adding more noise to it the larger the `strength`. "
                     "The number of denoising steps depends on the amount of noise initially added. "
