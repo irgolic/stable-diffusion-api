@@ -29,9 +29,9 @@ class PydanticConverterUtils:
             title=model_field.field_info.title or None,
             description=model_field.field_info.description or None,
             gt=model_field.field_info.gt or None,
-            ge=model_field.field_info.ge or None,
+            # ge=model_field.field_info.ge or None,
             lt=model_field.field_info.lt or None,
-            le=model_field.field_info.le or None,
+            # le=model_field.field_info.le or None,
             min_length=model_field.field_info.min_length or None,
             max_length=model_field.field_info.max_length or None,
             regex=model_field.field_info.regex or None,
@@ -48,10 +48,11 @@ class PydanticConverterUtils:
             inspect.Parameter(
                 name=field.alias,
                 kind=inspect.Parameter.POSITIONAL_ONLY,
-                default=param_maker(field),
+                default=param_default,
                 annotation=field.outer_type_,
             )
             for field in model.__fields__.values()
+            if (param_default := param_maker(field)) is not None
         ]
 
 
@@ -83,6 +84,8 @@ class PydanticConverter(PydanticConverterUtils):
                 Either the result of `Query`, if the field is not a sub-model, or
                 the result of `Depends on` if it is.
             """
+            if typing.get_origin(field.outer_type_) is dict:
+                return None
             if type(field.type_) is type and issubclass(field.type_, BaseModel):
                 # This is a sub-model.
                 assert hasattr(field.type_, _type_var_name), (
