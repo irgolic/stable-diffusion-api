@@ -7,28 +7,30 @@ from stable_diffusion_server.models.blob import BlobUrl
 
 
 class Params(pydantic.BaseModel):
-    # private class attribute
+    params_type: str
     _endpoint_stem: typing.ClassVar[str]
 
     class Config:
         extra = pydantic.Extra.forbid
 
-    pipeline: str = pydantic.Field(
-        description="The pipeline to use for the task. "
-                    "One of: "
-                    "the *file name* of a community pipeline hosted on GitHub under "
-                    "https://github.com/huggingface/diffusers/tree/main/examples/community "
-                    "(e.g., 'clip_guided_stable_diffusion'), "
-                    "*a path* to a *directory* containing a file called `pipeline.py` "
-                    "(e.g., './my_pipeline_directory/'.), or "
-                    "the *repo id* of a custom pipeline hosted on huggingface. "
-                    "See [Loading and Creating Custom Pipelines]"
-                    "(https://huggingface.co/docs/diffusers/main/en/using-diffusers/custom_pipelines). "
-    )
-    pipeline_method: Optional[str] = pydantic.Field(
-        description="The method to call on the pipeline. "
-                    "If unspecified, the pipeline itself will be called.",
-    )
+    # pipeline: str = pydantic.Field(
+    #     description="The pipeline to use for the task. "
+    #                 "One of: "
+    #                 "the *file name* of a community pipeline hosted on GitHub under "
+    #                 "https://github.com/huggingface/diffusers/tree/main/examples/community "
+    #                 "(e.g., 'clip_guided_stable_diffusion'), "
+    #                 "*a path* to a *directory* containing a file called `pipeline.py` "
+    #                 "(e.g., './my_pipeline_directory/'.), or "
+    #                 "the *repo id* of a custom pipeline hosted on huggingface. "
+    #                 "See [Loading and Creating Custom Pipelines]"
+    #                 "(https://huggingface.co/docs/diffusers/main/en/using-diffusers/custom_pipelines). "
+    # )
+    # pipeline_method: Optional[str] = pydantic.Field(
+    #     description="The method to call on the pipeline. "
+    #                 "If unspecified, the pipeline itself will be called.",
+    # )
+    _pipeline: str = pydantic.PrivateAttr()
+    _pipeline_method: Optional[str] = pydantic.PrivateAttr(None)
 
     model: str = pydantic.Field(
         default="CompVis/stable-diffusion-v1-4",
@@ -83,10 +85,11 @@ class Params(pydantic.BaseModel):
 
 
 class Txt2ImgParams(Params):
-    _endpoint_stem = 'txt2img'
+    params_type: Literal['txt2img'] = "txt2img"
 
-    pipeline: Literal["stable_diffusion_mega"] = "stable_diffusion_mega"
-    pipeline_method: Literal["text2img"] = "text2img"
+    _endpoint_stem = "txt2img"
+    _pipeline = pydantic.PrivateAttr("stable_diffusion_mega")
+    _pipeline_method = pydantic.PrivateAttr("text2img")
 
     width: int = pydantic.Field(
         default=512,
@@ -97,10 +100,11 @@ class Txt2ImgParams(Params):
 
 
 class Img2ImgParams(Params):
-    _endpoint_stem = 'img2img'
+    params_type: Literal['img2img'] = 'img2img'
 
-    pipeline: Literal["stable_diffusion_mega"] = "stable_diffusion_mega"
-    pipeline_method: Literal["img2img"] = "img2img"
+    _endpoint_stem = "img2img"
+    _pipeline = pydantic.PrivateAttr("stable_diffusion_mega")
+    _pipeline_method = pydantic.PrivateAttr("img2img")
 
     initial_image: BlobUrl = pydantic.Field(
         description="The image to use as input for image generation. "
@@ -120,10 +124,11 @@ class Img2ImgParams(Params):
 
 
 class InpaintParams(Params):
-    _endpoint_stem = 'inpaint'
+    params_type: Literal['inpaint'] = 'inpaint'
 
-    pipeline: Literal["stable_diffusion_mega"] = "stable_diffusion_mega"
-    pipeline_method: Literal["inpaint"] = "inpaint"
+    _endpoint_stem = "inpaint"
+    _pipeline = pydantic.PrivateAttr("stable_diffusion_mega")
+    _pipeline_method = pydantic.PrivateAttr("inpaint")
 
     model: str = pydantic.Field(
         default="runwayml/stable-diffusion-inpainting",
