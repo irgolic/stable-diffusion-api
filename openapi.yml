@@ -76,21 +76,21 @@ components:
           - finished
           title: Event Type
           type: string
-        image:
-          $ref: '#/components/schemas/GeneratedImage'
+        result:
+          $ref: '#/components/schemas/GeneratedBlob'
         task_id:
           title: Task Id
           type: string
       required:
       - event_type
       - task_id
-      - image
+      - result
       title: FinishedEvent
       type: object
-    GeneratedImage:
+    GeneratedBlob:
       properties:
-        image_url:
-          title: Image Url
+        blob_url:
+          title: Blob Url
           type: string
         parameters_used:
           anyOf:
@@ -99,9 +99,9 @@ components:
           - $ref: '#/components/schemas/InpaintParams'
           title: Parameters Used
       required:
-      - image_url
+      - blob_url
       - parameters_used
-      title: GeneratedImage
+      title: GeneratedBlob
       type: object
     HTTPValidationError:
       properties:

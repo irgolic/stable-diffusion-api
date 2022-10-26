@@ -26,7 +26,7 @@ from stable_diffusion_server.engine.services.status_service import StatusService
 from stable_diffusion_server.engine.services.task_service import TaskService
 from stable_diffusion_server.models.blob import BlobToken, BlobUrl
 from stable_diffusion_server.models.events import EventUnion, FinishedEvent, AbortedEvent
-from stable_diffusion_server.models.image import GeneratedImage
+from stable_diffusion_server.models.results import GeneratedBlob
 from stable_diffusion_server.models.params import Txt2ImgParams, Img2ImgParams, ParamsUnion
 from stable_diffusion_server.models.task import TaskId, Task
 from stable_diffusion_server.models.user import UserBase, AuthenticationError, User, AuthToken
@@ -288,7 +288,7 @@ def create_app(app_config: AppConfig) -> FastAPI:
             parameters: param_type = QueryDepends(param_type),  # type: ignore
             user: User = Depends(get_user),
             task_service: TaskService = Depends(construct_task_service),
-        ) -> GeneratedImage:
+        ) -> GeneratedBlob:
             task = Task(
                 parameters=parameters,
                 user=user,
@@ -298,7 +298,7 @@ def create_app(app_config: AppConfig) -> FastAPI:
                 if isinstance(event, AbortedEvent):
                     raise HTTPException(status_code=500, detail=event.reason)
                 if isinstance(event, FinishedEvent):
-                    return event.image
+                    return event.result
             raise RuntimeError("Event stream ended unexpectedly")
 
     ###
