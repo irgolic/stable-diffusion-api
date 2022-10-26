@@ -306,6 +306,9 @@ class AppClient:
     async def post(self, *args, **kwargs):
         return await self.client.post(*args, **kwargs, headers=self.headers)
 
+    async def delete(self, *args, **kwargs):
+        return await self.client.delete(*args, **kwargs, headers=self.headers)
+
     async def __aenter__(self, *args, **kwargs):
         await self.client.__aenter__(*args, **kwargs)
         return self

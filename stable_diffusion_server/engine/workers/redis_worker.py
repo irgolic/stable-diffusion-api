@@ -36,6 +36,7 @@ def create_runner() -> Coroutine[Task, None, None]:
     )
     runner_service = RunnerService(
         blob_repo=blob_repo,
+        status_service=status_service,
         event_service=event_service,
     )
 

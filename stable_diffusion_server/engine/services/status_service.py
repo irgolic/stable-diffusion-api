@@ -35,3 +35,12 @@ class StatusService:
         if event_json is None:
             return None
         return pydantic.parse_raw_as(EventUnion, event_json)
+
+    def cancel_task(self, task_id: TaskId) -> None:
+        task = self.get_task(task_id)
+        if task is None:
+            raise ValueError(f"Task {task_id} does not exist")
+        self.key_value_repo.store('task_cancelled', task_id, 'true')
+
+    def is_task_cancelled(self, task_id: TaskId) -> bool:
+        return self.key_value_repo.exists('task_cancelled', task_id)

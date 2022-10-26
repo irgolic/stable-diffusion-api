@@ -292,3 +292,39 @@ class BaseTestApp:
 
         generated_image = response.json()
         assert generated_image['parameters_used'] == resolved_dummy_txt2img_params
+
+    @pytest.mark.asyncio
+    async def test_cancel_task(
+        self,
+        client,
+        websocket,
+        dummy_txt2img_params,
+    ):
+        # create task
+        response = await client.post('/task', json=dummy_txt2img_params)
+        assert response.status_code == 200
+        task_id = response.json()
+
+        # cancel task
+        response = await client.delete(f'/task/{task_id}')
+        assert response.status_code == 204
+
+        # check events
+        await self.assert_websocket_received({
+            'event_type': 'pending',
+            'task_id': task_id,
+        }, websocket)
+
+        await self.assert_websocket_received({
+            'event_type': 'started',
+            'task_id': task_id,
+        }, websocket)
+
+        aborted_event = {
+            'event_type': 'aborted',
+            'task_id': task_id,
+            'reason': 'Task cancelled by user',
+        }
+
+        await self.assert_websocket_received(aborted_event, websocket)
+        await self.assert_poll_status(client, task_id, aborted_event)

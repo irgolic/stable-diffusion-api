@@ -11,23 +11,30 @@ from diffusers import StableDiffusionPipeline, DDIMScheduler, LMSDiscreteSchedul
 
 from stable_diffusion_server.engine.repos.blob_repo import BlobRepo
 from stable_diffusion_server.engine.services.event_service import EventService
+from stable_diffusion_server.engine.services.status_service import StatusService
 from stable_diffusion_server.models.blob import BlobUrl
 from stable_diffusion_server.models.events import FinishedEvent, StartedEvent, AbortedEvent
 from stable_diffusion_server.models.params import Txt2ImgParams, Img2ImgParams, InpaintParams, Params
 from stable_diffusion_server.models.results import GeneratedBlob
-from stable_diffusion_server.models.task import Task
+from stable_diffusion_server.models.task import Task, TaskId
 from stable_diffusion_server.models.user import User, Username
 
 logger = logging.getLogger(__name__)
+
+
+class TaskCancelledException(Exception):
+    pass
 
 
 class RunnerService:
     def __init__(
         self,
         blob_repo: BlobRepo,
-        event_service: EventService
+        status_service: StatusService,
+        event_service: EventService,
     ):
         self.blob_repo = blob_repo
+        self.status_service = status_service
         self.event_service = event_service
 
         self.cached_kwargs: Optional[dict[str, Any]] = None
@@ -43,8 +50,8 @@ class RunnerService:
             # adapted from diffusers.pipelines.stable_diffusion.pipeline_stable_diffusion_inpaint_legacy.preprocess_mask
             # instead of shrinking it down by 8 times, resize it to 64 x 64 (latent space size)
             mask = image.convert('L')
-            w, h = mask.size
-            w, h = map(lambda x: x - x % 32, (w, h))  # resize to integer multiple of 32
+            # w, h = mask.size
+            # w, h = map(lambda x: x - x % 32, (w, h))  # resize to integer multiple of 32
             mask = mask.resize((64, 64), resample=PIL.Image.NEAREST)
             mask = np.array(mask).astype(np.float32) / 255.0
             mask = np.tile(mask, (4, 1, 1))
@@ -53,6 +60,17 @@ class RunnerService:
             mask = torch.from_numpy(mask)
             return mask
         return image.convert('RGB')
+
+    def pipeline_callback(
+        self,
+        task_id: TaskId,
+        step: int,
+        timestep: int,
+        latents: torch.FloatTensor,
+    ):
+        if self.status_service.is_task_cancelled(task_id):
+            raise TaskCancelledException()
+        # TODO update progress and save intermediate results
 
     def get_arguments(self, task: Task, device: str) -> tuple[dict[str, Any], dict[str, Any], Optional[str]]:
         params = task.parameters
@@ -176,15 +194,30 @@ class RunnerService:
                 self.cached_kwargs = pipeline_kwargs
                 self.cached_pipeline = pipe
 
-            # run pipeline
+            # determine pipeline method
             if pipe_method_name is None:
                 pipe_method = pipe
             else:
                 pipe_method = getattr(pipe, pipe_method_name)
 
+            # run pipeline
+            output = pipe_method(
+                **pipe_kwargs,
+                callback=lambda step, timestep, latents: self.pipeline_callback(task.task_id, step, timestep, latents)
+            )
+
             # get output
-            output = pipe_method(**pipe_kwargs)
             img = output.images[0]
+        except TaskCancelledException:
+            self.event_service.send_event(
+                task.user.session_id,
+                AbortedEvent(
+                    event_type="aborted",
+                    task_id=task.task_id,
+                    reason="Task cancelled by user",
+                )
+            )
+            return
         except Exception as e:
             logger.error(f'Error while handling task: {task}', exc_info=True)
             self.event_service.send_event(

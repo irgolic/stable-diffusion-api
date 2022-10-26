@@ -788,6 +788,34 @@ paths:
       - OAuth2PasswordBearer: []
       summary: Create Task
   /task/{task_id}:
+    delete:
+      operationId: delete_task_task__task_id__delete
+      parameters:
+      - in: path
+        name: task_id
+        required: true
+        schema:
+          title: Task Id
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: {}
+          description: Successful Response
+        '204':
+          description: Task cancelled
+        '404':
+          description: Task not found
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+          description: Validation Error
+      security:
+      - OAuth2PasswordBearer: []
+      summary: Delete Task
     get:
       operationId: poll_task_status_task__task_id__get
       parameters:

@@ -240,6 +240,21 @@ def create_app(app_config: AppConfig) -> FastAPI:
             raise RuntimeError("Task exists but no event found")
         return event
 
+    @app.delete("/task/{task_id}", responses={
+        204: {"description": "Task cancelled"},
+        404: {"description": "Task not found"},
+    })
+    async def delete_task(
+        task_id: TaskId,
+        status_service: StatusService = Depends(construct_status_service),
+        user: User = Depends(get_user),
+    ):
+        task = status_service.get_task(task_id)
+        if task is None or task.user.username != user.username:
+            raise HTTPException(status_code=404, detail="Task not found")
+        status_service.cancel_task(task.task_id)
+        return Response(status_code=204)
+
     ###
     # Blobs (eventually to be replaced with a proper object store, and pre-signed POST/GET URLs)
     ###
