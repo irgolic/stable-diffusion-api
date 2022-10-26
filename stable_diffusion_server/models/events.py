@@ -2,7 +2,7 @@ from typing import Union, Literal
 
 import pydantic
 
-from stable_diffusion_server.models.image import GeneratedImage
+from stable_diffusion_server.models.image import GeneratedBlob
 from stable_diffusion_server.models.task import TaskId
 from stable_diffusion_server.models.user import SessionId
 
@@ -30,7 +30,7 @@ class AbortedEvent(Event):
 class FinishedEvent(Event):
     event_type: Literal["finished"]
 
-    image: GeneratedImage
+    image: GeneratedBlob
 
 
 EventUnion = Union[tuple(Event.__subclasses__())]  # type: ignore

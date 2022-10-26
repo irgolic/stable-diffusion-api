@@ -77,7 +77,7 @@ components:
           title: Event Type
           type: string
         image:
-          $ref: '#/components/schemas/GeneratedImage'
+          $ref: '#/components/schemas/GeneratedBlob'
         task_id:
           title: Task Id
           type: string
@@ -87,7 +87,7 @@ components:
       - image
       title: FinishedEvent
       type: object
-    GeneratedImage:
+    GeneratedBlob:
       properties:
         image_url:
           title: Image Url
@@ -101,7 +101,7 @@ components:
       required:
       - image_url
       - parameters_used
-      title: GeneratedImage
+      title: GeneratedBlob
       type: object
     HTTPValidationError:
       properties:

@@ -14,7 +14,7 @@ from stable_diffusion_server.engine.services.event_service import EventService
 from stable_diffusion_server.models.blob import BlobUrl
 from stable_diffusion_server.models.events import FinishedEvent, StartedEvent, AbortedEvent
 from stable_diffusion_server.models.params import Txt2ImgParams, Img2ImgParams, InpaintParams, Params
-from stable_diffusion_server.models.image import GeneratedImage
+from stable_diffusion_server.models.image import GeneratedBlob
 from stable_diffusion_server.models.task import Task
 from stable_diffusion_server.models.user import User, Username
 
@@ -129,7 +129,7 @@ class RunnerService:
 
         return pipeline_kwargs, pipe_kwargs, params._pipeline_method
 
-    def save_img(self, img: PIL.Image.Image, task: Task) -> GeneratedImage:
+    def save_img(self, img: PIL.Image.Image, task: Task) -> GeneratedBlob:
         # convert pillow image to png bytes
         img_byte_arr = io.BytesIO()
         img.save(img_byte_arr, format='PNG')
@@ -138,7 +138,7 @@ class RunnerService:
         # save blob
         blob_url = self.blob_repo.put_blob(img_bytes)
 
-        return GeneratedImage(
+        return GeneratedBlob(
             image_url=blob_url,
             parameters_used=task.parameters,
         )
