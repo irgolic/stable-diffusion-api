@@ -76,7 +76,7 @@ components:
           - finished
           title: Event Type
           type: string
-        image:
+        result:
           $ref: '#/components/schemas/GeneratedBlob'
         task_id:
           title: Task Id
@@ -84,7 +84,7 @@ components:
       required:
       - event_type
       - task_id
-      - image
+      - result
       title: FinishedEvent
       type: object
     GeneratedBlob:

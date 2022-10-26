@@ -192,6 +192,6 @@ class RunnerService:
             FinishedEvent(
                 event_type="finished",
                 task_id=task.task_id,
-                image=generated_image,
+                result=generated_image,
             )
         )

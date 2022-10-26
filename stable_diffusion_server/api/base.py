@@ -298,7 +298,7 @@ def create_app(app_config: AppConfig) -> FastAPI:
                 if isinstance(event, AbortedEvent):
                     raise HTTPException(status_code=500, detail=event.reason)
                 if isinstance(event, FinishedEvent):
-                    return event.image
+                    return event.result
             raise RuntimeError("Event stream ended unexpectedly")
 
     ###

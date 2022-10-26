@@ -30,7 +30,7 @@ class AbortedEvent(Event):
 class FinishedEvent(Event):
     event_type: Literal["finished"]
 
-    image: GeneratedBlob
+    result: GeneratedBlob
 
 
 EventUnion = Union[tuple(Event.__subclasses__())]  # type: ignore
