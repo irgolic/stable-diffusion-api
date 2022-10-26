@@ -139,7 +139,7 @@ class RunnerService:
         blob_url = self.blob_repo.put_blob(img_bytes)
 
         return GeneratedBlob(
-            image_url=blob_url,
+            blob_url=blob_url,
             parameters_used=task.parameters,
         )
 

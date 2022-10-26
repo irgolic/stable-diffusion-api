@@ -5,5 +5,5 @@ from stable_diffusion_server.models.params import ParamsUnion
 
 
 class GeneratedBlob(pydantic.BaseModel):
-    image_url: BlobUrl
+    blob_url: BlobUrl
     parameters_used: ParamsUnion

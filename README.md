@@ -74,7 +74,7 @@ The model will be downloaded and cached, and the task will be queued for executi
 Event types:
 - PendingEvent
 - StartedEvent
-- FinishedEvent (with `image_url` and `parameters_used`)
+- FinishedEvent (with `blob_url` and `parameters_used`)
 - AbortedEvent (with `reason`)
 
 #### Results
