@@ -52,15 +52,13 @@ class BaseTestApp:
     @pytest.fixture
     def dummy_txt2img_params(self, common_params):
         return common_params | {
-            "pipeline": "stable_diffusion_mega",
-            "pipeline_method": "text2img",
+            "params_type": "txt2img",
         }
 
     @pytest.fixture
     def resolved_dummy_txt2img_params(self, resolved_common_params):
         return resolved_common_params | {
-            "pipeline": "stable_diffusion_mega",
-            "pipeline_method": "text2img",
+            "params_type": "txt2img",
             'width': 512,
             'height': 512,
         }
@@ -68,16 +66,14 @@ class BaseTestApp:
     @pytest.fixture
     def dummy_img2img_params(self, common_params):
         return common_params | {
-            "pipeline": "stable_diffusion_mega",
-            "pipeline_method": "img2img",
+            "params_type": "img2img",
             'initial_image': mock.ANY,
         }
 
     @pytest.fixture
     def resolved_dummy_img2img_params(self, resolved_common_params):
         return resolved_common_params | {
-            "pipeline": "stable_diffusion_mega",
-            "pipeline_method": "img2img",
+            "params_type": "img2img",
             'initial_image': mock.ANY,
             "strength": 0.8,
         }
@@ -85,8 +81,7 @@ class BaseTestApp:
     @pytest.fixture
     def dummy_inpaint_params(self, common_params):
         return common_params | {
-            "pipeline": "stable_diffusion_mega",
-            "pipeline_method": "inpaint",
+            "params_type": "inpaint",
             'initial_image': mock.ANY,
             "mask": mock.ANY,
         }
@@ -94,8 +89,7 @@ class BaseTestApp:
     @pytest.fixture
     def resolved_dummy_inpaint_params(self, resolved_common_params):
         return resolved_common_params | {
-            "pipeline": "stable_diffusion_mega",
-            "pipeline_method": "inpaint",
+            "params_type": "inpaint",
             'initial_image': mock.ANY,
             "mask": mock.ANY,
         }

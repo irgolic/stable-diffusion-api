@@ -143,17 +143,11 @@ components:
             guidance (i.e., if `guidance` is `1`).
           title: Negative Prompt
           type: string
-        pipeline:
-          default: stable_diffusion_mega
-          enum:
-          - stable_diffusion_mega
-          title: Pipeline
-          type: string
-        pipeline_method:
+        params_type:
           default: img2img
           enum:
           - img2img
-          title: Pipeline Method
+          title: Params Type
           type: string
         prompt:
           description: The prompt to guide image generation.
@@ -240,17 +234,11 @@ components:
             guidance (i.e., if `guidance` is `1`).
           title: Negative Prompt
           type: string
-        pipeline:
-          default: stable_diffusion_mega
-          enum:
-          - stable_diffusion_mega
-          title: Pipeline
-          type: string
-        pipeline_method:
+        params_type:
           default: inpaint
           enum:
           - inpaint
-          title: Pipeline Method
+          title: Params Type
           type: string
         prompt:
           description: The prompt to guide image generation.
@@ -351,17 +339,11 @@ components:
             guidance (i.e., if `guidance` is `1`).
           title: Negative Prompt
           type: string
-        pipeline:
-          default: stable_diffusion_mega
+        params_type:
+          default: txt2img
           enum:
-          - stable_diffusion_mega
-          title: Pipeline
-          type: string
-        pipeline_method:
-          default: text2img
-          enum:
-          - text2img
-          title: Pipeline Method
+          - txt2img
+          title: Params Type
           type: string
         prompt:
           description: The prompt to guide image generation.
@@ -475,22 +457,13 @@ paths:
       operationId: get_endpoint_img2img_get
       parameters:
       - in: query
-        name: pipeline
-        required: false
-        schema:
-          default: stable_diffusion_mega
-          enum:
-          - stable_diffusion_mega
-          title: Pipeline
-          type: string
-      - in: query
-        name: pipeline_method
+        name: params_type
         required: false
         schema:
           default: img2img
           enum:
           - img2img
-          title: Pipeline Method
+          title: Params Type
           type: string
       - description: 'The model to use for image generation. One of: the *repo id*
           of a pretrained pipeline hosted on huggingface (e.g. ''CompVis/stable-diffusion-v1-4''),
@@ -644,22 +617,13 @@ paths:
       operationId: get_endpoint_inpaint_get
       parameters:
       - in: query
-        name: pipeline
-        required: false
-        schema:
-          default: stable_diffusion_mega
-          enum:
-          - stable_diffusion_mega
-          title: Pipeline
-          type: string
-      - in: query
-        name: pipeline_method
+        name: params_type
         required: false
         schema:
           default: inpaint
           enum:
           - inpaint
-          title: Pipeline Method
+          title: Params Type
           type: string
       - description: The model to use for image generation, e.g. 'runwayml/stable-diffusion-inpainting'.
         in: query
@@ -893,22 +857,13 @@ paths:
       operationId: get_endpoint_txt2img_get
       parameters:
       - in: query
-        name: pipeline
+        name: params_type
         required: false
         schema:
-          default: stable_diffusion_mega
+          default: txt2img
           enum:
-          - stable_diffusion_mega
-          title: Pipeline
-          type: string
-      - in: query
-        name: pipeline_method
-        required: false
-        schema:
-          default: text2img
-          enum:
-          - text2img
-          title: Pipeline Method
+          - txt2img
+          title: Params Type
           type: string
       - description: 'The model to use for image generation. One of: the *repo id*
           of a pretrained pipeline hosted on huggingface (e.g. ''CompVis/stable-diffusion-v1-4''),

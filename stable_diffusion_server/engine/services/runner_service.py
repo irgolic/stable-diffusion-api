@@ -51,7 +51,7 @@ class RunnerService:
             return mask
         return image.convert('RGB')
 
-    def get_arguments(self, task: Task, device: str) -> tuple[dict[str, Any], dict[str, Any], str]:
+    def get_arguments(self, task: Task, device: str) -> tuple[dict[str, Any], dict[str, Any], Optional[str]]:
         params = task.parameters
 
         # set model
@@ -104,24 +104,18 @@ class RunnerService:
 
         # prepare pipeline
         pipeline_kwargs.update(
-            custom_pipeline=params.pipeline,
+            custom_pipeline=params._pipeline,
         )
         if isinstance(params, Txt2ImgParams):
             pipe_kwargs.update(
                 height=params.height,
                 width=params.width,
             )
-            pipeline_kwargs.update(
-                custom_pipeline='stable_diffusion_mega',
-            )
         elif isinstance(params, Img2ImgParams):
             init_image = self.get_img(params.initial_image)
             pipe_kwargs.update(
                 strength=params.strength,
                 init_image=init_image,
-            )
-            pipeline_kwargs.update(
-                custom_pipeline='stable_diffusion_mega',
             )
         elif isinstance(params, InpaintParams):
             init_image = self.get_img(params.initial_image)
@@ -130,15 +124,10 @@ class RunnerService:
                 init_image=init_image,
                 mask_image=mask_image,
             )
-            pipeline_kwargs.update(
-                custom_pipeline='stable_diffusion_mega',
-            )
         else:
-            pipeline_kwargs.update(
-                custom_pipeline=params.pipeline,
-            )
+            raise ValueError(f'Unknown params type: {params}')
 
-        return pipeline_kwargs, pipe_kwargs, params.pipeline_method
+        return pipeline_kwargs, pipe_kwargs, params._pipeline_method
 
     def save_img(self, img: PIL.Image.Image, task: Task) -> GeneratedImage:
         # convert pillow image to png bytes
