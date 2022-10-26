@@ -30,6 +30,9 @@ class RunnerService:
         self.blob_repo = blob_repo
         self.event_service = event_service
 
+        self.cached_kwargs: Optional[dict[str, Any]] = None
+        self.cached_pipeline = None
+
     def get_img(self, blob_url: BlobUrl, is_mask: bool = False):
         # extract image blob into `init_image` pipe kwarg
         blob = self.blob_repo.get_blob(blob_url)
@@ -161,14 +164,25 @@ class RunnerService:
         # extract parameters
         pipeline_kwargs, pipe_kwargs, pipe_method_name = self.get_arguments(task, device)
 
-        # run pipeline
         try:
-            pipe = DiffusionPipeline.from_pretrained(**pipeline_kwargs)
-            pipe.to(device)
+            # create or reuse pipeline
+            if self.cached_pipeline is not None and self.cached_kwargs == pipeline_kwargs:
+                # reuse cached pipeline
+                pipe = self.cached_pipeline
+            else:
+                # create pipeline
+                pipe = DiffusionPipeline.from_pretrained(**pipeline_kwargs)
+                pipe.to(device)
+                self.cached_kwargs = pipeline_kwargs
+                self.cached_pipeline = pipe
+
+            # run pipeline
             if pipe_method_name is None:
                 pipe_method = pipe
             else:
                 pipe_method = getattr(pipe, pipe_method_name)
+
+            # get output
             output = pipe_method(**pipe_kwargs)
             img = output.images[0]
         except Exception as e:
