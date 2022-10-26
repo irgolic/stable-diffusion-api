@@ -88,7 +88,7 @@ class Txt2ImgParams(Params):
     params_type: Literal['txt2img'] = "txt2img"
 
     _endpoint_stem = "txt2img"
-    _pipeline = pydantic.PrivateAttr("stable_diffusion_mega")
+    _pipeline = pydantic.PrivateAttr("lpw_stable_diffusion")
     _pipeline_method = pydantic.PrivateAttr("text2img")
 
     width: int = pydantic.Field(
@@ -103,7 +103,7 @@ class Img2ImgParams(Params):
     params_type: Literal['img2img'] = 'img2img'
 
     _endpoint_stem = "img2img"
-    _pipeline = pydantic.PrivateAttr("stable_diffusion_mega")
+    _pipeline = pydantic.PrivateAttr("lpw_stable_diffusion")
     _pipeline_method = pydantic.PrivateAttr("img2img")
 
     initial_image: BlobUrl = pydantic.Field(
@@ -127,7 +127,7 @@ class InpaintParams(Params):
     params_type: Literal['inpaint'] = 'inpaint'
 
     _endpoint_stem = "inpaint"
-    _pipeline = pydantic.PrivateAttr("stable_diffusion_mega")
+    _pipeline = pydantic.PrivateAttr("lpw_stable_diffusion")
     _pipeline_method = pydantic.PrivateAttr("inpaint")
 
     model: str = pydantic.Field(
