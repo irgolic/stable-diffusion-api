@@ -14,7 +14,7 @@ from stable_diffusion_server.engine.services.event_service import EventService
 from stable_diffusion_server.models.blob import BlobUrl
 from stable_diffusion_server.models.events import FinishedEvent, StartedEvent, AbortedEvent
 from stable_diffusion_server.models.params import Txt2ImgParams, Img2ImgParams, InpaintParams, Params
-from stable_diffusion_server.models.image import GeneratedBlob
+from stable_diffusion_server.models.results import GeneratedBlob
 from stable_diffusion_server.models.task import Task
 from stable_diffusion_server.models.user import User, Username
 

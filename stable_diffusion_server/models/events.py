@@ -2,7 +2,7 @@ from typing import Union, Literal
 
 import pydantic
 
-from stable_diffusion_server.models.image import GeneratedBlob
+from stable_diffusion_server.models.results import GeneratedBlob
 from stable_diffusion_server.models.task import TaskId
 from stable_diffusion_server.models.user import SessionId
 

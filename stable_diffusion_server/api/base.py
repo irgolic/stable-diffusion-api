@@ -26,7 +26,7 @@ from stable_diffusion_server.engine.services.status_service import StatusService
 from stable_diffusion_server.engine.services.task_service import TaskService
 from stable_diffusion_server.models.blob import BlobToken, BlobUrl
 from stable_diffusion_server.models.events import EventUnion, FinishedEvent, AbortedEvent
-from stable_diffusion_server.models.image import GeneratedBlob
+from stable_diffusion_server.models.results import GeneratedBlob
 from stable_diffusion_server.models.params import Txt2ImgParams, Img2ImgParams, ParamsUnion
 from stable_diffusion_server.models.task import TaskId, Task
 from stable_diffusion_server.models.user import UserBase, AuthenticationError, User, AuthToken
