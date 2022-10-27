@@ -103,6 +103,13 @@ class BaseTestApp:
         assert ws_event == event_dict, ws_event
         return ws_event
 
+    @staticmethod
+    async def assert_websocket_eventually_received(event_dict: dict[str, Any], websocket) -> dict[str, Any]:
+        while True:
+            ws_event = json.loads(json.loads(await websocket.recv()))
+            if ws_event == event_dict:
+                return ws_event
+
     async def assert_poll_status(self, client, task_id, expected_event) -> dict[str, Any]:
         while True:
             response = await client.get(f'/task/{task_id}')

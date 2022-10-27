@@ -14,6 +14,7 @@ from fastapi.openapi.utils import get_openapi
 from fastapi import FastAPI, Depends, websockets, Query, HTTPException, File, UploadFile
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from starlette import status
+from starlette.requests import Request
 from starlette.responses import Response
 
 from stable_diffusion_server.api.utils.pyfa_converter import QueryDepends
@@ -294,27 +295,57 @@ def create_app(app_config: AppConfig) -> FastAPI:
     # Synchronous API (convenience wrappers for the asynchronous API)
     ###
 
+    async def wait_task_finished(
+        task: Task,
+        request: Request,
+        status_service: StatusService,
+    ) -> FinishedEvent:
+        async def get_finished_event_or_raise():
+            async for event in subscribe_to_task(task.task_id):
+                if isinstance(event, AbortedEvent):
+                    raise HTTPException(status_code=500, detail=event.reason)
+                if isinstance(event, FinishedEvent):
+                    return event
+            raise RuntimeError("Event stream ended unexpectedly")
+
+        async def disconnect_listener() -> None:
+            while not await request.is_disconnected():
+                await asyncio.sleep(0.1)
+
+        done, pending = await asyncio.wait([get_finished_event_or_raise(), disconnect_listener()],
+                                           return_when=asyncio.FIRST_COMPLETED)
+
+        for aio_task in pending:
+            aio_task.cancel()
+
+        if await request.is_disconnected():
+            status_service.cancel_task(task.task_id)
+            raise HTTPException(status_code=499, detail="Client disconnected")
+
+        event = done.pop().result()
+        if event is None:
+            raise RuntimeError("Event stream ended unexpectedly")
+        return event
+
     for param_type in typing.get_args(ParamsUnion):
         @app.get(
             f'/{param_type._endpoint_stem}',
             summary=param_type._endpoint_stem,
         )
         async def get_endpoint(
+            request: Request,
             parameters: param_type = QueryDepends(param_type),  # type: ignore
             user: User = Depends(get_user),
             task_service: TaskService = Depends(construct_task_service),
+            status_service: StatusService = Depends(construct_status_service),
         ) -> GeneratedBlob:
             task = Task(
                 parameters=parameters,
                 user=user,
             )
             task_service.push_task(task)
-            async for event in subscribe_to_task(task.task_id):
-                if isinstance(event, AbortedEvent):
-                    raise HTTPException(status_code=500, detail=event.reason)
-                if isinstance(event, FinishedEvent):
-                    return event.result
-            raise RuntimeError("Event stream ended unexpectedly")
+            event = await wait_task_finished(task, request, status_service)
+            return event.result
 
     ###
     # Websocket
