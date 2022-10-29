@@ -175,10 +175,20 @@ def create_app(app_config: AppConfig) -> FastAPI:
     queues_by_session_id: dict[str, list[asyncio.Queue]] = defaultdict(list)
     queues_by_task_id: dict[TaskId, list[asyncio.Queue]] = defaultdict(list)
 
+    listener_ready: bool = False
+
     async def event_listener():
+        nonlocal listener_ready
+
+        # instantiate the event listener
         listener = EventListener(
             messaging_repo=app_config.messaging_repo_class(),
         )
+
+        # initialize listener
+        await listener.initialize()
+        listener_ready = True
+
         async for session_id, event in listener.listen():
             for queue in queues_by_session_id[session_id]:
                 await queue.put(event)
@@ -191,13 +201,20 @@ def create_app(app_config: AppConfig) -> FastAPI:
     async def startup_event():
         nonlocal listener_task
         listener_task = asyncio.create_task(event_listener())
+        # only start the app when the listener is ready
+        while not listener_ready:
+            await asyncio.sleep(0.1)
 
     @app.on_event("shutdown")
     async def shutdown_event():
         nonlocal listener_task
+        nonlocal listener_ready
+        queues_by_session_id.clear()
+        queues_by_task_id.clear()
         if listener_task is not None:
             listener_task.cancel()
             listener_task = None
+            listener_ready = False
 
     async def subscribe_to_session(session_id: str) -> AsyncGenerator[EventUnion, None]:
         queue = asyncio.Queue()
