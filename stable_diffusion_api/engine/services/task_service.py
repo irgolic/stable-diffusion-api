@@ -3,11 +3,11 @@ from typing import AsyncIterator
 
 import pydantic
 
-from stable_diffusion_server.engine.repos.messaging_repo import MessagingRepo
-from stable_diffusion_server.engine.services.event_service import EventService
-from stable_diffusion_server.engine.services.status_service import StatusService
-from stable_diffusion_server.models.events import PendingEvent
-from stable_diffusion_server.models.task import Task
+from stable_diffusion_api.engine.repos.messaging_repo import MessagingRepo
+from stable_diffusion_api.engine.services.event_service import EventService
+from stable_diffusion_api.engine.services.status_service import StatusService
+from stable_diffusion_api.models.events import PendingEvent
+from stable_diffusion_api.models.task import Task
 
 logger = logging.getLogger(__name__)
 

@@ -4,7 +4,7 @@ from collections import defaultdict
 from datetime import datetime
 from typing import Sequence, Union, AsyncIterable, AsyncIterator
 
-from stable_diffusion_server.engine.utils import get_aioredis, get_redis
+from stable_diffusion_api.engine.utils import get_aioredis, get_redis
 
 logger = logging.getLogger(__name__)
 

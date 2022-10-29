@@ -1,7 +1,7 @@
 # Stable Diffusion API
 
-[![OpenApi](https://img.shields.io/badge/OpenApi-3.0.2-orange)](https://editor.swagger.io/?url=https://raw.githubusercontent.com/irgolic/stable-diffusion-server/master/openapi.yml)
-[![Google Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/irgolic/stable-diffusion-server/blob/master/colab_runner.ipynb)
+[![OpenApi](https://img.shields.io/badge/OpenApi-3.0.2-orange)](https://editor.swagger.io/?url=https://raw.githubusercontent.com/irgolic/stable-diffusion-api/master/openapi.yml)
+[![Google Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/irgolic/stable-diffusion-api/blob/master/colab_runner.ipynb)
 [![Discord](https://discordapp.com/api/guilds/1027703335224098857/widget.png?style=shield)](https://discord.gg/UXQfCRpYSC)
 
 Simple backend to serve Txt2Img, Img2Img and Inpainting with any model published on [Hugging Face](https://huggingface.co/models).
@@ -36,7 +36,7 @@ Inpainting also supports:
 ## Usage
 
 Generate any client library from the [OpenApi](
-https://editor.swagger.io/?url=https://raw.githubusercontent.com/irgolic/stable-diffusion-server/master/openapi.yml) specification.
+https://editor.swagger.io/?url=https://raw.githubusercontent.com/irgolic/stable-diffusion-api/master/openapi.yml) specification.
 
 ### Authentication
 
@@ -52,12 +52,12 @@ Registered users can generate their own tokens at `POST /token/{username}`.
 
 ### Synchronous Interface
 
-For convenience, the server provides synchronous endpoints at `GET /txt2img`, `GET /img2img`, and `GET /inpaint`.
+For convenience, the API provides synchronous endpoints at `GET /txt2img`, `GET /img2img`, and `GET /inpaint`.
 
 To print a browser-accessible URL upon startup (i.e., `http://localhost:8000/txt2img?prompt=corgi&steps=5?token=...`), 
 set environment variable `PRINT_LINK_WITH_TOKEN=1` (set by default in `.env.example`).
 
-The server will wait for the model to download and generate an image before returning the request.
+The API will wait for the model to download and generate an image before returning the request.
 It is preferable to use the asynchronous endpoints for production use.
 
 ### Asynchronous Interface (recommended)
@@ -81,7 +81,7 @@ Event types:
 
 The FinishedEvent contains a URL to the generated image.
 Currently only local blob serving is supported;
-make sure to download the image before shutting down the server.
+make sure to download the image before shutting down the API.
 
 ## Installation
 
@@ -96,8 +96,8 @@ Install python 3.10 with your preferred environment creator.
 Install [MiniConda](https://docs.conda.io/en/latest/miniconda.html) and create a new environment with python 3.10.
 
 ```bash
-conda create -n sds python=3.10
-conda activate sds
+conda create -n sda python=3.10
+conda activate sda
 ```
 
 ### Poetry
@@ -138,13 +138,13 @@ make run
 Or invoke processes on multiple machines, starting the API with:
 
 ```bash
-poetry run uvicorn stable_diffusion_server.api.redis_app:app
+poetry run uvicorn stable_diffusion_api.api.redis_app:app
 ```
 
 And the worker(s) with:
 
 ```bash
-poetry run python -m stable_diffusion_server.engine.worker.redis_worker
+poetry run python -m stable_diffusion_api.engine.worker.redis_worker
 ```
 
 ### Single Process
@@ -152,5 +152,5 @@ poetry run python -m stable_diffusion_server.engine.worker.redis_worker
 Run the API and worker in a single process. API requests will block until the worker is finished.
 
 ```bash
-poetry run uvicorn stable_diffusion_server.api.in_memory_app:app
+poetry run uvicorn stable_diffusion_api.api.in_memory_app:app
 ```

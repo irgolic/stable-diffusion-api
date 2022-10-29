@@ -6,11 +6,11 @@ import redis
 from asgi_lifespan import LifespanManager
 from httpx import AsyncClient
 
-from stable_diffusion_server.api import redis_app
-from stable_diffusion_server.api.tests.base import BaseTestApp
-from stable_diffusion_server.api.tests.utils import AsyncioTestClient, LocalAppClient
-from stable_diffusion_server.engine.utils import load_redis
-from stable_diffusion_server.engine.workers.redis_worker import create_runner
+from stable_diffusion_api.api import redis_app
+from stable_diffusion_api.api.tests.base import BaseTestApp
+from stable_diffusion_api.api.tests.utils import AsyncioTestClient, LocalAppClient
+from stable_diffusion_api.engine.utils import load_redis
+from stable_diffusion_api.engine.workers.redis_worker import create_runner
 
 logger = logging.getLogger(__name__)
 

@@ -4,15 +4,15 @@ import os
 import sys
 from typing import Coroutine
 
-from stable_diffusion_server.engine.repos.blob_repo import InMemoryBlobRepo
-from stable_diffusion_server.engine.repos.key_value_repo import InMemoryKeyValueRepo
-from stable_diffusion_server.engine.repos.messaging_repo import InMemoryMessagingRepo
-from stable_diffusion_server.engine.services.event_service import EventService
-from stable_diffusion_server.engine.services.runner_service import RunnerService
-from stable_diffusion_server.engine.services.status_service import StatusService
-from stable_diffusion_server.engine.services.task_service import TaskListener
-from stable_diffusion_server.engine.workers.utils import get_runner_coroutine, get_local_blob_repo_params
-from stable_diffusion_server.models.task import Task
+from stable_diffusion_api.engine.repos.blob_repo import InMemoryBlobRepo
+from stable_diffusion_api.engine.repos.key_value_repo import InMemoryKeyValueRepo
+from stable_diffusion_api.engine.repos.messaging_repo import InMemoryMessagingRepo
+from stable_diffusion_api.engine.services.event_service import EventService
+from stable_diffusion_api.engine.services.runner_service import RunnerService
+from stable_diffusion_api.engine.services.status_service import StatusService
+from stable_diffusion_api.engine.services.task_service import TaskListener
+from stable_diffusion_api.engine.workers.utils import get_runner_coroutine, get_local_blob_repo_params
+from stable_diffusion_api.models.task import Task
 
 logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 logger = logging.getLogger(__name__)

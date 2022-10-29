@@ -17,20 +17,20 @@ from starlette import status
 from starlette.requests import Request
 from starlette.responses import Response
 
-from stable_diffusion_server.api.utils.pyfa_converter import QueryDepends
-from stable_diffusion_server.engine.repos.blob_repo import BlobRepo, LocalBlobRepo
-from stable_diffusion_server.engine.repos.key_value_repo import KeyValueRepo
-from stable_diffusion_server.engine.repos.messaging_repo import MessagingRepo
-from stable_diffusion_server.engine.repos.user_repo import UserRepo
-from stable_diffusion_server.engine.services.event_service import EventListener, EventService
-from stable_diffusion_server.engine.services.status_service import StatusService
-from stable_diffusion_server.engine.services.task_service import TaskService
-from stable_diffusion_server.models.blob import BlobToken, BlobUrl
-from stable_diffusion_server.models.events import EventUnion, FinishedEvent, AbortedEvent
-from stable_diffusion_server.models.results import GeneratedBlob
-from stable_diffusion_server.models.params import Txt2ImgParams, Img2ImgParams, ParamsUnion
-from stable_diffusion_server.models.task import TaskId, Task
-from stable_diffusion_server.models.user import UserBase, AuthenticationError, User, AuthToken
+from stable_diffusion_api.api.utils.pyfa_converter import QueryDepends
+from stable_diffusion_api.engine.repos.blob_repo import BlobRepo, LocalBlobRepo
+from stable_diffusion_api.engine.repos.key_value_repo import KeyValueRepo
+from stable_diffusion_api.engine.repos.messaging_repo import MessagingRepo
+from stable_diffusion_api.engine.repos.user_repo import UserRepo
+from stable_diffusion_api.engine.services.event_service import EventListener, EventService
+from stable_diffusion_api.engine.services.status_service import StatusService
+from stable_diffusion_api.engine.services.task_service import TaskService
+from stable_diffusion_api.models.blob import BlobToken, BlobUrl
+from stable_diffusion_api.models.events import EventUnion, FinishedEvent, AbortedEvent
+from stable_diffusion_api.models.results import GeneratedBlob
+from stable_diffusion_api.models.params import Txt2ImgParams, Img2ImgParams, ParamsUnion
+from stable_diffusion_api.models.task import TaskId, Task
+from stable_diffusion_api.models.user import UserBase, AuthenticationError, User, AuthToken
 
 
 class AppConfig(pydantic.BaseModel):

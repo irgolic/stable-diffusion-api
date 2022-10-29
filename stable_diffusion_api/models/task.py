@@ -3,8 +3,8 @@ import uuid
 import pydantic
 from typing_extensions import TypeAlias
 
-from stable_diffusion_server.models.params import ParamsUnion
-from stable_diffusion_server.models.user import User
+from stable_diffusion_api.models.params import ParamsUnion
+from stable_diffusion_api.models.user import User
 
 TaskId: TypeAlias = str
 

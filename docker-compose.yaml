@@ -14,7 +14,7 @@ services:
       - ./:/app
   api:
     build: .
-    image: irgolic/stable-diffusion-server
+    image: irgolic/stable-diffusion-api:latest
     depends_on:
       - redis
 #    expose:
@@ -35,7 +35,7 @@ services:
       - ./:/app
     command: deployment/run_redis_app.sh
   redis_worker:
-    image: irgolic/stable-diffusion-server:latest
+    image: irgolic/stable-diffusion-api:latest
     deploy:
       replicas: 5
     depends_on:
@@ -53,7 +53,7 @@ services:
       - ~/.cache/huggingface:/root/.cache/huggingface
     entrypoint: deployment/run_redis_worker.sh
   e2e_tests:
-    image: irgolic/stable-diffusion-server:latest
+    image: irgolic/stable-diffusion-api:latest
     depends_on:
       - redis
       - api

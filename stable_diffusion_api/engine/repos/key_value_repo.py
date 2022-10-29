@@ -1,7 +1,7 @@
 from collections import defaultdict
 from typing import Optional
 
-from stable_diffusion_server.engine.utils import get_redis
+from stable_diffusion_api.engine.utils import get_redis
 
 
 class KeyValueRepo:

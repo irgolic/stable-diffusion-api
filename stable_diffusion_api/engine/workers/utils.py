@@ -2,7 +2,7 @@ import asyncio
 import os
 from typing import Coroutine
 
-from stable_diffusion_server.models.task import Task
+from stable_diffusion_api.models.task import Task
 
 
 def get_runner_coroutine(task_listener, runner_service) -> Coroutine[Task, None, None]:

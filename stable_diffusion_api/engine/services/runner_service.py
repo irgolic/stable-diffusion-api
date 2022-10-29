@@ -9,15 +9,15 @@ import torch
 from diffusers import StableDiffusionPipeline, DDIMScheduler, LMSDiscreteScheduler, StableDiffusionImg2ImgPipeline, \
     StableDiffusionInpaintPipeline, DiffusionPipeline
 
-from stable_diffusion_server.engine.repos.blob_repo import BlobRepo
-from stable_diffusion_server.engine.services.event_service import EventService
-from stable_diffusion_server.engine.services.status_service import StatusService
-from stable_diffusion_server.models.blob import BlobUrl
-from stable_diffusion_server.models.events import FinishedEvent, StartedEvent, AbortedEvent
-from stable_diffusion_server.models.params import Txt2ImgParams, Img2ImgParams, InpaintParams, Params
-from stable_diffusion_server.models.results import GeneratedBlob
-from stable_diffusion_server.models.task import Task, TaskId
-from stable_diffusion_server.models.user import User, Username
+from stable_diffusion_api.engine.repos.blob_repo import BlobRepo
+from stable_diffusion_api.engine.services.event_service import EventService
+from stable_diffusion_api.engine.services.status_service import StatusService
+from stable_diffusion_api.models.blob import BlobUrl
+from stable_diffusion_api.models.events import FinishedEvent, StartedEvent, AbortedEvent
+from stable_diffusion_api.models.params import Txt2ImgParams, Img2ImgParams, InpaintParams, Params
+from stable_diffusion_api.models.results import GeneratedBlob
+from stable_diffusion_api.models.task import Task, TaskId
+from stable_diffusion_api.models.user import User, Username
 
 logger = logging.getLogger(__name__)
 

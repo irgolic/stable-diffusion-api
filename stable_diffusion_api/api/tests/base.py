@@ -9,7 +9,7 @@ import pytest
 import pytest_asyncio
 import requests
 
-from stable_diffusion_server.api.tests.utils import AppClient
+from stable_diffusion_api.api.tests.utils import AppClient
 
 
 class BaseTestApp:

@@ -2,9 +2,9 @@ from typing import Union, Literal
 
 import pydantic
 
-from stable_diffusion_server.models.results import GeneratedBlob
-from stable_diffusion_server.models.task import TaskId
-from stable_diffusion_server.models.user import SessionId
+from stable_diffusion_api.models.results import GeneratedBlob
+from stable_diffusion_api.models.task import TaskId
+from stable_diffusion_api.models.user import SessionId
 
 
 class Event(pydantic.BaseModel):

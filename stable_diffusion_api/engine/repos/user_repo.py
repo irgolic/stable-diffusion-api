@@ -6,8 +6,8 @@ import jose
 from jose import jwt
 from passlib.context import CryptContext
 
-from stable_diffusion_server.engine.utils import get_redis
-from stable_diffusion_server.models.user import Username, UserInDB, DefaultUsername, UserBase, AuthenticationError, \
+from stable_diffusion_api.engine.utils import get_redis
+from stable_diffusion_api.models.user import Username, UserInDB, DefaultUsername, UserBase, AuthenticationError, \
     AuthToken, User
 
 

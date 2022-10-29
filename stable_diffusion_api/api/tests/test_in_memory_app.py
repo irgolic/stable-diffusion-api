@@ -4,11 +4,11 @@ import pytest
 from httpx import AsyncClient
 from asgi_lifespan import LifespanManager
 
-from stable_diffusion_server.api.tests.base import BaseTestApp
+from stable_diffusion_api.api.tests.base import BaseTestApp
 
-from stable_diffusion_server.api.tests.utils import AsyncioTestClient, LocalAppClient
-from stable_diffusion_server.api.in_memory_app import fastapi_app
-from stable_diffusion_server.engine.workers.in_memory_worker import create_runner
+from stable_diffusion_api.api.tests.utils import AsyncioTestClient, LocalAppClient
+from stable_diffusion_api.api.in_memory_app import fastapi_app
+from stable_diffusion_api.engine.workers.in_memory_worker import create_runner
 
 
 class TestInMemoryApp(BaseTestApp):

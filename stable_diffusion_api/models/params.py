@@ -3,7 +3,7 @@ from typing import Optional, Union, Literal
 import pydantic
 import typing
 
-from stable_diffusion_server.models.blob import BlobUrl
+from stable_diffusion_api.models.blob import BlobUrl
 
 
 class Params(pydantic.BaseModel):

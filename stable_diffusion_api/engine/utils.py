@@ -5,7 +5,7 @@ import aioredis
 import pydantic
 import redis
 
-from stable_diffusion_server.models.user import SessionId
+from stable_diffusion_api.models.user import SessionId
 
 T = typing.TypeVar('T', bound=pydantic.BaseModel)
 

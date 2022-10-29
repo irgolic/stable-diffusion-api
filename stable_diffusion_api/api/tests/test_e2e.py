@@ -6,8 +6,8 @@ import pytest
 from httpx import AsyncClient
 from requests_toolbelt import sessions
 
-from stable_diffusion_server.api.tests.base import BaseTestApp
-from stable_diffusion_server.api.tests.utils import RemoteAppClient
+from stable_diffusion_api.api.tests.base import BaseTestApp
+from stable_diffusion_api.api.tests.utils import RemoteAppClient
 
 
 @pytest.mark.e2e

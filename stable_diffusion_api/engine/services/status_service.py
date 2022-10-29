@@ -2,9 +2,9 @@ from typing import Optional
 
 import pydantic
 
-from stable_diffusion_server.engine.repos.key_value_repo import KeyValueRepo
-from stable_diffusion_server.models.events import EventUnion
-from stable_diffusion_server.models.task import TaskId, Task
+from stable_diffusion_api.engine.repos.key_value_repo import KeyValueRepo
+from stable_diffusion_api.models.events import EventUnion
+from stable_diffusion_api.models.task import TaskId, Task
 
 
 class StatusService:

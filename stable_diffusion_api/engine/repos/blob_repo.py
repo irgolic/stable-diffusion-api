@@ -7,9 +7,9 @@ from jose import jwt
 import jose.exceptions
 from typing_extensions import TypeAlias
 
-from stable_diffusion_server.engine.utils import get_redis
-from stable_diffusion_server.models.blob import BlobUrl, BlobId, BlobToken
-from stable_diffusion_server.models.user import Username
+from stable_diffusion_api.engine.utils import get_redis
+from stable_diffusion_api.models.blob import BlobUrl, BlobId, BlobToken
+from stable_diffusion_api.models.user import Username
 import requests
 
 

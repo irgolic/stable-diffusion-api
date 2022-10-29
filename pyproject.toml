@@ -1,11 +1,11 @@
 [tool.poetry]
-name = "stable-diffusion-server"
+name = "stable-diffusion-api"
 version = "0.1.0"
 description = ""
 authors = ["Rafael Irgolic <hello@irgolic.com>"]
 license = "GNU Affero General Public License"
 readme = "README.md"
-packages = [{include = "stable_diffusion_server"}]
+packages = [{include = "stable_diffusion_api"}]
 
 [tool.poetry.dependencies]
 python = "^3.10"
