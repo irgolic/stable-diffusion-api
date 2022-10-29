@@ -60,6 +60,9 @@ set environment variable `PRINT_LINK_WITH_TOKEN=1` (set by default in `.env.exam
 The API will wait for the model to download and generate an image before returning the request.
 It is preferable to use the asynchronous endpoints for production use.
 
+If the connection is dropped (you navigate away from the page),
+the API will automatically cancel the request and free up resources.
+
 ### Asynchronous Interface (recommended)
 
 #### Invocation
@@ -76,6 +79,8 @@ Event types:
 - StartedEvent
 - FinishedEvent (with `blob_url` and `parameters_used`)
 - AbortedEvent (with `reason`)
+
+To cancel a task, `DELETE /task/{task_id}`.
 
 #### Results
 
