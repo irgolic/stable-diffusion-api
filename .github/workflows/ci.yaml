@@ -109,4 +109,4 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: E2E docker-compose tests
-        run: make tests-up
+        run: make test
