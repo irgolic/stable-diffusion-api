@@ -185,9 +185,19 @@ def create_app(app_config: AppConfig) -> FastAPI:
             for queue in queues_by_task_id[event.task_id]:
                 await queue.put(event)
 
+    listener_task: Optional[asyncio.Task] = None
+
     @app.on_event("startup")
     async def startup_event():
-        asyncio.create_task(event_listener())
+        nonlocal listener_task
+        listener_task = asyncio.create_task(event_listener())
+
+    @app.on_event("shutdown")
+    async def shutdown_event():
+        nonlocal listener_task
+        if listener_task is not None:
+            listener_task.cancel()
+            listener_task = None
 
     async def subscribe_to_session(session_id: str) -> AsyncGenerator[EventUnion, None]:
         queue = asyncio.Queue()
