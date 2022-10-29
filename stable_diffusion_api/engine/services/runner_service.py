@@ -209,6 +209,7 @@ class RunnerService:
             # get output
             img = output.images[0]
         except TaskCancelledException:
+            logger.info(f'Task cancelled by user: {task}')
             self.event_service.send_event(
                 task.user.session_id,
                 AbortedEvent(
