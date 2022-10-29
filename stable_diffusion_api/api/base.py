@@ -328,11 +328,11 @@ def create_app(app_config: AppConfig) -> FastAPI:
         status_service: StatusService,
     ) -> FinishedEvent:
         async def get_finished_event_or_raise():
-            async for event in subscribe_to_task(task.task_id):
-                if isinstance(event, AbortedEvent):
-                    raise HTTPException(status_code=500, detail=event.reason)
-                if isinstance(event, FinishedEvent):
-                    return event
+            async for ev in subscribe_to_task(task.task_id):
+                if isinstance(ev, AbortedEvent):
+                    raise HTTPException(status_code=500, detail=ev.reason)
+                if isinstance(ev, FinishedEvent):
+                    return ev
             raise RuntimeError("Event stream ended unexpectedly")
 
         async def disconnect_listener() -> None:
