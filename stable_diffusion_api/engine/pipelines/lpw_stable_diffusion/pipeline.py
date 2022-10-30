@@ -1,3 +1,7 @@
+# type: ignore
+
+# Lifted from https://github.com/huggingface/diffusers/blob/main/examples/community/lpw_stable_diffusion.py
+
 import asyncio
 import inspect
 import re
