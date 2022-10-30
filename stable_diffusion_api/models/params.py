@@ -7,29 +7,11 @@ from stable_diffusion_api.models.blob import BlobUrl
 
 
 class Params(pydantic.BaseModel):
-    params_type: str
-    _endpoint_stem: typing.ClassVar[str]
-
     class Config:
         extra = pydantic.Extra.forbid
 
-    # pipeline: str = pydantic.Field(
-    #     description="The pipeline to use for the task. "
-    #                 "One of: "
-    #                 "the *file name* of a community pipeline hosted on GitHub under "
-    #                 "https://github.com/huggingface/diffusers/tree/main/examples/community "
-    #                 "(e.g., 'clip_guided_stable_diffusion'), "
-    #                 "*a path* to a *directory* containing a file called `pipeline.py` "
-    #                 "(e.g., './my_pipeline_directory/'.), or "
-    #                 "the *repo id* of a custom pipeline hosted on huggingface. "
-    #                 "See [Loading and Creating Custom Pipelines]"
-    #                 "(https://huggingface.co/docs/diffusers/main/en/using-diffusers/custom_pipelines). "
-    # )
-    # pipeline_method: Optional[str] = pydantic.Field(
-    #     description="The method to call on the pipeline. "
-    #                 "If unspecified, the pipeline itself will be called.",
-    # )
-    _pipeline: str = pydantic.PrivateAttr()
+    params_type: str
+    _endpoint_stem: typing.ClassVar[str]
     _pipeline_method: Optional[str] = pydantic.PrivateAttr(None)
 
     model: str = pydantic.Field(
@@ -88,7 +70,6 @@ class Txt2ImgParams(Params):
     params_type: Literal['txt2img'] = "txt2img"
 
     _endpoint_stem = "txt2img"
-    _pipeline = pydantic.PrivateAttr("lpw_stable_diffusion")
     _pipeline_method = pydantic.PrivateAttr("text2img")
 
     width: int = pydantic.Field(
@@ -103,7 +84,6 @@ class Img2ImgParams(Params):
     params_type: Literal['img2img'] = 'img2img'
 
     _endpoint_stem = "img2img"
-    _pipeline = pydantic.PrivateAttr("lpw_stable_diffusion")
     _pipeline_method = pydantic.PrivateAttr("img2img")
 
     initial_image: BlobUrl = pydantic.Field(
@@ -127,7 +107,6 @@ class InpaintParams(Params):
     params_type: Literal['inpaint'] = 'inpaint'
 
     _endpoint_stem = "inpaint"
-    _pipeline = pydantic.PrivateAttr("lpw_stable_diffusion")
     _pipeline_method = pydantic.PrivateAttr("inpaint")
 
     model: str = pydantic.Field(
