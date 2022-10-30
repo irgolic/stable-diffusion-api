@@ -483,7 +483,6 @@ class StableDiffusionLongPromptWeightingPipeline(DiffusionPipeline):
         # set slice_size = `None` to disable `attention slicing`
         self.enable_attention_slicing(None)
 
-    @torch.no_grad()
     async def __call__(
         self,
         prompt: Union[str, List[str]],
