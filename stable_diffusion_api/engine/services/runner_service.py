@@ -202,7 +202,7 @@ class RunnerService:
                 pipe_method = getattr(pipe, pipe_method_name)
 
             # run pipeline
-            output = pipe_method(
+            output = await pipe_method(
                 **pipe_kwargs,
                 callback=lambda step, timestep, latents: self.pipeline_callback(task.task_id, step, timestep, latents)
             )

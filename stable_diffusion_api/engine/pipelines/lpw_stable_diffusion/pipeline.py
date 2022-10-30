@@ -1,3 +1,4 @@
+import asyncio
 import inspect
 import re
 from typing import Callable, List, Optional, Union
@@ -479,7 +480,7 @@ class StableDiffusionLongPromptWeightingPipeline(DiffusionPipeline):
         self.enable_attention_slicing(None)
 
     @torch.no_grad()
-    def __call__(
+    async def __call__(
         self,
         prompt: Union[str, List[str]],
         negative_prompt: Optional[Union[str, List[str]]] = None,
@@ -768,6 +769,9 @@ class StableDiffusionLongPromptWeightingPipeline(DiffusionPipeline):
                 if is_cancelled_callback is not None and is_cancelled_callback():
                     return None
 
+            # yield to the event loop
+            await asyncio.sleep(0)
+
         latents = 1 / 0.18215 * latents
         image = self.vae.decode(latents).sample
 
@@ -795,7 +799,7 @@ class StableDiffusionLongPromptWeightingPipeline(DiffusionPipeline):
 
         return StableDiffusionPipelineOutput(images=image, nsfw_content_detected=has_nsfw_concept)
 
-    def text2img(
+    async def text2img(
         self,
         prompt: Union[str, List[str]],
         negative_prompt: Optional[Union[str, List[str]]] = None,
@@ -868,7 +872,7 @@ class StableDiffusionLongPromptWeightingPipeline(DiffusionPipeline):
             list of `bool`s denoting whether the corresponding generated image likely represents "not-safe-for-work"
             (nsfw) content, according to the `safety_checker`.
         """
-        return self.__call__(
+        return await self.__call__(
             prompt=prompt,
             negative_prompt=negative_prompt,
             height=height,
@@ -887,7 +891,7 @@ class StableDiffusionLongPromptWeightingPipeline(DiffusionPipeline):
             **kwargs,
         )
 
-    def img2img(
+    async def img2img(
         self,
         init_image: Union[torch.FloatTensor, PIL.Image.Image],
         prompt: Union[str, List[str]],
@@ -960,7 +964,7 @@ class StableDiffusionLongPromptWeightingPipeline(DiffusionPipeline):
             list of `bool`s denoting whether the corresponding generated image likely represents "not-safe-for-work"
             (nsfw) content, according to the `safety_checker`.
         """
-        return self.__call__(
+        return await self.__call__(
             prompt=prompt,
             negative_prompt=negative_prompt,
             init_image=init_image,
@@ -978,7 +982,7 @@ class StableDiffusionLongPromptWeightingPipeline(DiffusionPipeline):
             **kwargs,
         )
 
-    def inpaint(
+    async def inpaint(
         self,
         init_image: Union[torch.FloatTensor, PIL.Image.Image],
         mask_image: Union[torch.FloatTensor, PIL.Image.Image],
@@ -1056,7 +1060,7 @@ class StableDiffusionLongPromptWeightingPipeline(DiffusionPipeline):
             list of `bool`s denoting whether the corresponding generated image likely represents "not-safe-for-work"
             (nsfw) content, according to the `safety_checker`.
         """
-        return self.__call__(
+        return await self.__call__(
             prompt=prompt,
             negative_prompt=negative_prompt,
             init_image=init_image,
