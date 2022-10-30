@@ -773,7 +773,10 @@ class StableDiffusionLongPromptWeightingPipeline(DiffusionPipeline):
                     return None
 
             # yield to the event loop
-            await asyncio.sleep(0)
+            # sleep for a very short amount of time to force the event loop to run other tasks
+            # asyncio.sleep(0) does not trigger all other event loop tasks each time
+            # (useful for in_memory_app, to check synchronous request disconnects every step)
+            await asyncio.sleep(0.005)
 
         latents = 1 / 0.18215 * latents
         image = self.vae.decode(latents).sample
