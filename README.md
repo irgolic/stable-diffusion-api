@@ -1,13 +1,30 @@
-# Stable Diffusion API
+# Stable Diffusion API 🥑
 
 [![OpenApi](https://img.shields.io/badge/OpenApi-3.0.2-orange)](https://editor.swagger.io/?url=https://raw.githubusercontent.com/irgolic/stable-diffusion-api/master/openapi.yml)
 [![Google Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/irgolic/stable-diffusion-api/blob/master/colab_runner.ipynb)
 [![Discord](https://discordapp.com/api/guilds/1027703335224098857/widget.png?style=shield)](https://discord.gg/UXQfCRpYSC)
 
-Simple backend to serve Txt2Img, Img2Img and Inpainting with any model published on [Hugging Face](https://huggingface.co/models).
-The aim is to provide a lightweight, easily extensible backend for image generation.
+Lightweight API for txt2Img, img2Img and inpainting, built with [🤗 diffusers](https://github.com/huggingface/diffusers/).
 
-## Features
+## Quickstart
+
+Run it  on [Google Colab](https://colab.research.google.com/github/irgolic/stable-diffusion-api/blob/master/colab_runner.ipynb), 
+or see [running instructions](#running) to use it locally.
+
+The API prints a link on startup, which invokes txt2img when visited in the browser. 
+
+Join our [Discord server](https://discord.gg/UXQfCRpYSC) for help, or to let me know what you'd like to see.
+
+## Usage
+
+Visit the API url in your browser [synchronously](#synchronous-interface) at 
+`/txt2img`, `/img2img` or `/inpaint`, and append parameters with `?prompt=corgi&model=...`.
+
+Or generate a client library in any popular programming language with the [OpenApi specification](
+https://editor.swagger.io/?url=https://raw.githubusercontent.com/irgolic/stable-diffusion-api/master/openapi.yml), 
+and implement it [asynchronously](#asynchronous-interface).
+
+### Features
 
 Supported parameters:
 - `prompt`: text prompt **(required)**, e.g. `corgi with a top hat`
@@ -33,10 +50,6 @@ Inpainting also supports:
 
 `POST /blob` to upload a new image to local storage, and get a URL.
 
-## Usage
-
-Generate any client library from the [OpenApi](
-https://editor.swagger.io/?url=https://raw.githubusercontent.com/irgolic/stable-diffusion-api/master/openapi.yml) specification.
 
 ### Authentication
 
@@ -57,20 +70,14 @@ For convenience, the API provides synchronous endpoints at `GET /txt2img`, `GET 
 To print a browser-accessible URL upon startup (i.e., `http://localhost:8000/txt2img?prompt=corgi&steps=5?token=...`), 
 set environment variable `PRINT_LINK_WITH_TOKEN=1` (set by default in `.env.example`).
 
-The API will wait for the model to download and generate an image before returning the request.
-It is preferable to use the asynchronous endpoints for production use.
-
-If the connection is dropped (you navigate away from the page),
+If the connection is dropped (i.e., you navigate away from the page),
 the API will automatically cancel the request and free up resources.
 
-### Asynchronous Interface (recommended)
+It is preferable to use the asynchronous interface for production use.
 
-#### Invocation
+### Asynchronous Interface
 
 `POST /task` with either `Txt2ImgParams`, `Img2ImgParams` or `InpaintParams` to start a task, and get a `task_id`. 
-The model will be downloaded and cached, and the task will be queued for execution.
-
-#### Job Status
 
 `GET /task/{task_id}` to get the last `event` broadcast by the task, or subscribe to the websocket endpoint `/events?token=<token>` to get a stream of events as they occur.
 
@@ -82,57 +89,58 @@ Event types:
 
 To cancel a task, `DELETE /task/{task_id}`.
 
-#### Results
+## Running
 
-The FinishedEvent contains a URL to the generated image.
-Currently only local blob serving is supported;
-make sure to download the image before shutting down the API.
-
-## Installation
+### Installing
 
 Install a virtual environment with python 3.10 and poetry.
 
-### Python Virtual Environment
-
-Install python 3.10 with your preferred environment creator.
-
 #### Conda (for example)
 
-Install [MiniConda](https://docs.conda.io/en/latest/miniconda.html) and create a new environment with python 3.10.
+Setup [MiniConda](https://docs.conda.io/en/latest/miniconda.html) and create a new environment with python 3.10.
 
 ```bash
 conda create -n sda python=3.10
 conda activate sda
 ```
 
-### Poetry
+#### Poetry
 
-Install [Poetry](https://python-poetry.org/docs/#installation) and install the dependencies.
+Setup [Poetry](https://python-poetry.org/docs/#installation) and install the dependencies.
 
 ```bash
 poetry install
 ```
 
-## Running
-
 ### Environment Variables
 
-See `.env.example` for a list of example environment variable values.
-Copy `.env.example` to `.env` and edit as needed (make sure to regenerate the secrets).
+Copy `.env.example` to `.env`:
+
+```bash
+cp .env.example .env
+```
+
+Genereate a new `SECRET_KEY`, and replace the one from the example:
+
+```bash
+openssl rand -hex 32
+```
+
+The various environment variables are:
 
 - `SECRET_KEY`: The secret key used to sign the JWT tokens.
 - `PRINT_LINK_WITH_TOKEN`: Whether to print a link with the token to the console on startup.
-- `BASE_URL`: Used to build link with token printed upon startup and local storage blob URLs.
 - `ENABLE_PUBLIC_ACCESS`: Whether to enable public token generation (anything except empty string enables it).
 - `ENABLE_SIGNUP`: Whether to enable user signup (anything except empty string enables it).
-- `REDIS_PORT`: The port of the Redis server.
+- `BASE_URL`: Used to build link with token printed upon startup and local storage blob URLs.
 - `REDIS_HOST`: The host of the Redis server.
+- `REDIS_PORT`: The port of the Redis server.
 - `REDIS_PASSWORD`: The password of the Redis server.
 - `HUGGINGFACE_TOKEN`: The token used by the worker to access the Hugging Face API.
 
 ### Docker Compose
 
-Run the API and five workers, with redis as intermediary, and docker-compose to manage the containers.
+Run the API and five workers, with redis as intermediary, and docker compose to manage the containers.
 
 ```bash
 make run
@@ -154,7 +162,7 @@ poetry run python -m stable_diffusion_api.engine.worker.redis_worker
 
 ### Single Process
 
-Run the API and worker in a single process. API requests will block until the worker is finished.
+Or run the API and worker in a single process.
 
 ```bash
 poetry run uvicorn stable_diffusion_api.api.in_memory_app:app
