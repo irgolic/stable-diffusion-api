@@ -433,7 +433,7 @@ def create_app(app_config: AppConfig) -> FastAPI:
         # print link
         print(f"Try visiting {app_config.BASE_URL}/txt2img?"
               f"prompt=corgi&"
-              f"steps=2&"
+              f"steps=20&"
               f"model=CompVis/stable-diffusion-v1-4&"
               f"token={token.access_token}")
 
