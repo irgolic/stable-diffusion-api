@@ -1,4 +1,4 @@
-# Stable Diffusion API 🥑
+# 👸 Stable Diffusion API 🐕
 
 [![OpenApi](https://img.shields.io/badge/OpenApi-3.0.2-orange)](https://editor.swagger.io/?url=https://raw.githubusercontent.com/irgolic/stable-diffusion-api/master/openapi.yml)
 [![Google Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/irgolic/stable-diffusion-api/blob/master/colab_runner.ipynb)
