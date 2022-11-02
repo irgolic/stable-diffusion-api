@@ -1,10 +1,21 @@
-# 👸 Stable Diffusion API 🐕
+<h1 align="center">👸 Stable Diffusion API 🐕</h1>
 
-[![OpenApi](https://img.shields.io/badge/OpenApi-3.0.2-orange)](https://editor.swagger.io/?url=https://raw.githubusercontent.com/irgolic/stable-diffusion-api/master/openapi.yml)
-[![Google Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/irgolic/stable-diffusion-api/blob/master/colab_runner.ipynb)
-[![Discord](https://discordapp.com/api/guilds/1027703335224098857/widget.png?style=shield)](https://discord.gg/UXQfCRpYSC)
+<p align="center">
+    <a href="https://editor.swagger.io/?url=https://raw.githubusercontent.com/irgolic/stable-diffusion-api/master/openapi.yml">
+        <img alt="OpenApi Specification" src=https://img.shields.io/badge/OpenApi-3.0.2-orange>
+    </a>
+    <a href="https://colab.research.google.com/github/irgolic/stable-diffusion-api/blob/master/colab_runner.ipynb">
+        <img alt="Google Colab" src=https://colab.research.google.com/assets/colab-badge.svg>
+    </a>
+    <a href="https://discord.gg/UXQfCRpYSC">
+        <img alt="Discord" src=https://discordapp.com/api/guilds/1027703335224098857/widget.png?style=shield>
+    </a>
+</p>
 
-Lightweight API for txt2Img, img2Img and inpainting, built with [🤗 diffusers](https://github.com/huggingface/diffusers/).
+<p align="center">
+Lightweight API for txt2Img, img2Img and inpainting, built with 
+<a href="https://github.com/huggingface/diffusers/">🤗 diffusers</a>
+</p>
 
 ## Quickstart
 
