@@ -327,7 +327,7 @@ def create_app(app_config: AppConfig) -> FastAPI:
         request: Request,
         status_service: StatusService,
     ) -> FinishedEvent:
-        async def get_finished_event_or_raise():
+        async def get_finished_event_or_raise() -> FinishedEvent:
             async for ev in subscribe_to_task(task.task_id):
                 if isinstance(ev, AbortedEvent):
                     raise HTTPException(status_code=500, detail=ev.reason)
@@ -338,6 +338,8 @@ def create_app(app_config: AppConfig) -> FastAPI:
         async def disconnect_listener() -> None:
             while not await request.is_disconnected():
                 await asyncio.sleep(0.1)
+            status_service.cancel_task(task.task_id)
+            raise HTTPException(status_code=499, detail="Client disconnected")
 
         done, pending = await asyncio.wait([get_finished_event_or_raise(), disconnect_listener()],
                                            return_when=asyncio.FIRST_COMPLETED)
@@ -345,11 +347,12 @@ def create_app(app_config: AppConfig) -> FastAPI:
         for aio_task in pending:
             aio_task.cancel()
 
-        if await request.is_disconnected():
-            status_service.cancel_task(task.task_id)
-            raise HTTPException(status_code=499, detail="Client disconnected")
+        done_task = done.pop()
+        exc = done_task.exception()
+        if exc is not None:
+            raise exc
 
-        event = done.pop().result()
+        event = done_task.result()
         if event is None:
             raise RuntimeError("Event stream ended unexpectedly")
         return event

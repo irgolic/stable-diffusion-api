@@ -80,6 +80,10 @@ class RunnerService:
             'pretrained_model_name_or_path': params.model
         }
 
+        # get path to directory containing pipeline
+        pipeline_dir = os.path.join(os.path.dirname(__file__), '..', 'pipelines', 'lpw_stable_diffusion')
+        pipeline_kwargs['custom_pipeline'] = pipeline_dir
+
         # set token
         if "HUGGINGFACE_TOKEN" in os.environ:
             pipeline_kwargs['use_auth_token'] = os.environ["HUGGINGFACE_TOKEN"]
@@ -124,9 +128,6 @@ class RunnerService:
         )
 
         # prepare pipeline
-        pipeline_kwargs.update(
-            custom_pipeline=params._pipeline,
-        )
         if isinstance(params, Txt2ImgParams):
             pipe_kwargs.update(
                 height=params.height,
@@ -201,10 +202,11 @@ class RunnerService:
                 pipe_method = getattr(pipe, pipe_method_name)
 
             # run pipeline
-            output = pipe_method(
-                **pipe_kwargs,
-                callback=lambda step, timestep, latents: self.pipeline_callback(task.task_id, step, timestep, latents)
-            )
+            with torch.no_grad():
+                output = await pipe_method(
+                    **pipe_kwargs,
+                    callback=lambda step, timestep, latents: self.pipeline_callback(task.task_id, step, timestep, latents)
+                )
 
             # get output
             img = output.images[0]
